@@ -23,6 +23,7 @@ export interface Customer {
   phone?: string | null;
   address?: string | null;
   tier: 'REGULAR' | 'GROSIR' | 'VIP';
+  creditLimit?: number | string | null;
 }
 
 export interface OrderItem {

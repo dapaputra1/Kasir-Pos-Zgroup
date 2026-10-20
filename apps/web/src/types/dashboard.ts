@@ -6,6 +6,10 @@ export interface DashboardMetrics {
   totalCategories: number;
   lowStockCount: number;
   outOfStockCount: number;
+  todaySales?: number;
+  todayOrdersCount?: number;
+  totalReceivables?: number;
+  totalPayables?: number;
 }
 
 export interface CriticalStockItem {

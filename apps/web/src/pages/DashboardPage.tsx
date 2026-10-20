@@ -3,20 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Package,
-  Layers,
   AlertTriangle,
   Boxes,
-  Plus,
   ArrowUpRight,
   TrendingUp,
   RefreshCw,
+  ShoppingCart,
+  Warehouse,
+  ClipboardList,
+  Barcode,
+  CreditCard,
+  DollarSign,
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Badge } from '../components/ui/Badge';
 import { useAuthStore } from '../stores/authStore';
-import { formatNumber, formatDate, getMovementDetails } from '../lib/utils';
+import { formatNumber, formatDate, getMovementDetails, formatRupiah } from '../lib/utils';
 import { DashboardSummary } from '../types/dashboard';
 import { Product } from '../types/product';
 import { StockAdjustModal } from '../components/products/StockAdjustModal';
@@ -69,190 +70,242 @@ export const DashboardPage: React.FC = () => {
   const recentMovements = summary?.recentMovements || [];
 
   return (
-    <div className="space-y-6">
-      {/* Top Welcome Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-lg border border-surface-border shadow-xs">
-        <div>
-          <h1 className="text-xl font-black text-ink">
-            Selamat Datang, <span className="text-brand-600">{user?.name}</span>
-          </h1>
-          <p className="text-xs text-ink-muted mt-0.5">
-            Berikut ringkasan status operasional dan inventori sembako hari ini.
-          </p>
-        </div>
+    <div className="space-y-5 pb-8">
+      {/* 1. TOP BANNER: Welcome + Live Status */}
+      <div className="bg-gradient-to-r from-[#0F2822] via-[#123E34] to-[#0A261F] text-white p-5 sm:p-6 rounded-2xl shadow-lg border border-emerald-900/40 relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-          >
-            Segarkan
-          </Button>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Sistem Kasir & Inventori Siap Operasi
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              Selamat Bertugas, <span className="text-emerald-400">{user?.name}</span>
+            </h1>
+            <p className="text-xs text-slate-300/80 mt-1 max-w-xl leading-relaxed">
+              Pantau arus kas, stok fisik multi-satuan (Sak/Dus/Kg), dan hutang-piutang dagang toko secara real-time.
+            </p>
+          </div>
 
-          {canManageProducts && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate('/products?action=add')}
-              leftIcon={<Plus className="w-4 h-4" />}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={() => refetch()}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/10 transition-colors shadow-2xs backdrop-blur-sm"
+              title="Perbarui Data"
             >
-              Tambah Produk Baru
-            </Button>
-          )}
+              <RefreshCw className="w-3.5 h-3.5 text-emerald-300" />
+              <span>Segarkan</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/pos')}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 hover:brightness-110 shadow-md shadow-emerald-950/50 transition-all transform active:scale-95"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>Buka Kasir POS</span>
+              <span className="font-mono text-[10px] bg-slate-950/20 text-slate-900 px-1.5 py-0.5 rounded font-black">
+                F4
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Shortcut Pills */}
+        <div className="relative z-10 mt-5 pt-4 border-t border-white/10 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-400 font-semibold text-[11px]">Akses Cepat:</span>
+          <button
+            onClick={() => navigate('/suppliers')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition"
+          >
+            <Warehouse className="w-3.5 h-3.5 text-blue-400" />
+            <span>Kulakan Restock</span>
+          </button>
+          <button
+            onClick={() => navigate('/inventory')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition"
+          >
+            <ClipboardList className="w-3.5 h-3.5 text-amber-400" />
+            <span>Stock Opname Fisik</span>
+          </button>
+          <button
+            onClick={() => navigate('/barcode-print')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition"
+          >
+            <Barcode className="w-3.5 h-3.5 text-teal-400" />
+            <span>Cetak Price Tag Rak</span>
+          </button>
+          <button
+            onClick={() => navigate('/customers')}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 transition"
+          >
+            <CreditCard className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Piutang Bon Tempo</span>
+          </button>
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Products */}
-        <Card className="hover:border-brand-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-                Total Produk
-              </span>
-              <div className="w-8 h-8 rounded-md bg-brand-50 text-brand-700 flex items-center justify-center">
-                <Package className="w-4 h-4" />
-              </div>
+      {/* 2. CORE KPI METRICS: Real Business Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Omzet Hari Ini */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-emerald-300 transition-all group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+              Penjualan Hari Ini
+            </span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+              <DollarSign className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-ink">
-              {isLoading ? '...' : formatNumber(metrics?.totalProducts || 0)}
-            </div>
-            <div className="mt-1 text-xs text-ink-muted flex items-center gap-1">
-              <span className="text-brand-600 font-semibold">{metrics?.activeProducts || 0}</span>{' '}
-              produk berstatus aktif
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight tabular-nums">
+            {isLoading ? '...' : formatRupiah(metrics?.todaySales || 0)}
+          </div>
+          <div className="mt-1 text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+            <span className="text-emerald-700 font-bold">{metrics?.todayOrdersCount || 0}</span>
+            <span>transaksi struk selesai</span>
+          </div>
+        </div>
 
-        {/* Categories */}
-        <Card className="hover:border-blue-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-                Kategori Sembako
-              </span>
-              <div className="w-8 h-8 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center">
-                <Layers className="w-4 h-4" />
-              </div>
+        {/* Card 2: Piutang Bon Customer */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-amber-300 transition-all group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+              Piutang Bon Pelanggan
+            </span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+              <CreditCard className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-ink">
-              {isLoading ? '...' : formatNumber(metrics?.totalCategories || 0)}
-            </div>
-            <div className="mt-1 text-xs text-ink-muted">Beras, Minyak, Gula, Mie, dll.</div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-2 text-2xl font-black text-amber-900 tracking-tight tabular-nums">
+            {isLoading ? '...' : formatRupiah(metrics?.totalReceivables || 0)}
+          </div>
+          <div className="mt-1 text-xs text-amber-700 font-medium">
+            Total saldo tempo aktif di toko
+          </div>
+        </div>
 
-        {/* Low Stock Warning */}
-        <Card className="hover:border-amber-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-amber-800 uppercase tracking-wider">
-                Stok Menipis
-              </span>
-              <div className="w-8 h-8 rounded-md bg-amber-50 text-amber-700 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
+        {/* Card 3: Total Produk & Varian */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-blue-300 transition-all group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+              Katalog Barang Aktif
+            </span>
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+              <Package className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-600">
-              {isLoading ? '...' : formatNumber(metrics?.lowStockCount || 0)}
-            </div>
-            <div className="mt-1 text-xs text-amber-800 font-medium">Perlu kulakan / restock segera</div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-2 text-2xl font-black text-slate-900 tracking-tight tabular-nums">
+            {isLoading ? '...' : formatNumber(metrics?.activeProducts || 0)}
+          </div>
+          <div className="mt-1 text-xs text-slate-500 flex items-center gap-1 font-medium">
+            <span className="text-blue-700 font-bold">{metrics?.totalCategories || 0}</span>
+            <span>kategori sembako terdaftar</span>
+          </div>
+        </div>
 
-        {/* Out of Stock Alert */}
-        <Card className="hover:border-rose-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">
-                Stok Habis
-              </span>
-              <div className="w-8 h-8 rounded-md bg-rose-50 text-rose-700 flex items-center justify-center">
-                <Boxes className="w-4 h-4" />
-              </div>
+        {/* Card 4: Peringatan Stok Menipis */}
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-rose-300 transition-all group">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+              Perlu Restock Segera
+            </span>
+            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xs">
+              <AlertTriangle className="w-5 h-5" />
             </div>
-            <div className="mt-2 text-2xl sm:text-3xl font-black text-rose-600">
-              {isLoading ? '...' : formatNumber(metrics?.outOfStockCount || 0)}
-            </div>
-            <div className="mt-1 text-xs text-rose-800 font-medium">Barang kosong di gudang</div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="mt-2 text-2xl font-black text-rose-700 tracking-tight tabular-nums">
+            {isLoading ? '...' : formatNumber(metrics?.lowStockCount || 0)}
+          </div>
+          <div className="mt-1 text-xs text-rose-600 font-semibold flex items-center gap-1">
+            <span>Stok fisik mendekati ambang batas</span>
+          </div>
+        </div>
       </div>
 
-      {/* Main Grid: Critical Stock Items & Recent Movements */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Critical Stock Alert Table (2 cols on lg) */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
+      {/* 3. MAIN WORKSPACE: Critical Stock Table & Recent Movements */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left Column (2 Cols): Critical Stock Items */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+          <div className="p-4 sm:p-5 border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-slate-50/50 to-white">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
+              <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
                 <span>Peringatan Stok Kritis & Perlu Kulakan</span>
-              </CardTitle>
-              <p className="text-xs text-ink-muted mt-0.5">
-                Barang yang jumlah fisiknya berada di bawah batas minimum stok yang telah ditentukan.
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Barang dengan jumlah fisik di bawah ambang batas minimum toko.
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => navigate('/products?status=low_stock')}
-              rightIcon={<ArrowUpRight className="w-3.5 h-3.5" />}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 hover:underline"
             >
-              Lihat Semua
-            </Button>
-          </CardHeader>
+              <span>Lihat Semua Produk</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-          <CardContent className="p-0">
+          <div className="flex-1 p-0">
             {criticalItems.length === 0 ? (
-              <div className="p-8 text-center text-ink-muted text-xs">
-                <TrendingUp className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <p className="font-semibold text-emerald-800">Semua stok berada dalam kondisi aman!</p>
-                <p className="mt-0.5">Tidak ada barang yang menipis di bawah batas minimum saat ini.</p>
+              <div className="p-12 text-center text-slate-500 text-xs space-y-2">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+                <p className="font-extrabold text-sm text-slate-800">Semua Stok Aman & Melimpah</p>
+                <p className="text-slate-500 max-w-sm mx-auto">
+                  Tidak ada barang yang berada di bawah batas minimum stok saat ini.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-surface-muted border-b border-surface-border text-ink font-semibold uppercase tracking-wider">
+                  <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                     <tr>
-                      <th className="px-4 py-3">Nama Produk</th>
-                      <th className="px-4 py-3 text-right">Stok Saat Ini</th>
+                      <th className="px-4 py-3">Nama Barang</th>
+                      <th className="px-4 py-3 text-right">Stok Fisik</th>
                       <th className="px-4 py-3 text-right">Batas Min</th>
-                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-center">Status</th>
                       <th className="px-4 py-3 text-center">Tindakan</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-border bg-white">
+                  <tbody className="divide-y divide-slate-100 bg-white">
                     {criticalItems.map((item) => (
-                      <tr key={item.id} className="hover:bg-surface-subtle/50 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-ink">{item.name}</td>
-                        <td className="px-4 py-3 text-right font-black text-rose-600">
+                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3 font-bold text-slate-900">{item.name}</td>
+                        <td className="px-4 py-3 text-right font-black text-rose-600 tabular-nums">
                           {formatNumber(item.currentStock)} {item.baseUnit}
                         </td>
-                        <td className="px-4 py-3 text-right text-ink-muted">
+                        <td className="px-4 py-3 text-right text-slate-500 tabular-nums">
                           {formatNumber(item.minStock)} {item.baseUnit}
                         </td>
-                        <td className="px-4 py-3">
-                          <Badge variant={item.status === 'out_of_stock' ? 'danger' : 'warning'}>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              item.status === 'out_of_stock'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
                             {item.status === 'out_of_stock' ? 'Habis (0)' : 'Menipis'}
-                          </Badge>
+                          </span>
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => {
-                              // Fetch full product for stock adjustment modal
-                              api.get(`/products/${item.id}`).then((res) => {
-                                setSelectedProductForAdjust(res.data.data);
-                              });
-                            }}
-                          >
-                            + Tambah Stok
-                          </Button>
+                          {canManageProducts ? (
+                            <button
+                              onClick={() => {
+                                api.get(`/products/${item.id}`).then((res) => {
+                                  setSelectedProductForAdjust(res.data.data);
+                                });
+                              }}
+                              className="px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition"
+                            >
+                              + Tambah Stok
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400">-</span>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -260,22 +313,30 @@ export const DashboardPage: React.FC = () => {
                 </table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Recent Audit Stock Movements (1 col on lg) */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Boxes className="w-4 h-4 text-brand-600" />
-              <span>Log Mutasi Stok Terakhir</span>
-            </CardTitle>
-            <p className="text-xs text-ink-muted mt-0.5">Audit trail perubahan inventori real-time</p>
-          </CardHeader>
+        {/* Right Column (1 Col): Recent Audit Stock Movements */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+          <div className="p-4 sm:p-5 border-b border-slate-200/80 flex items-center justify-between bg-gradient-to-r from-slate-50/50 to-white">
+            <div>
+              <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                <Boxes className="w-4 h-4 text-emerald-600" />
+                <span>Log Mutasi Terkini</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">Audit trail kartu stok real-time</p>
+            </div>
+            <button
+              onClick={() => navigate('/inventory')}
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800"
+            >
+              Semua
+            </button>
+          </div>
 
-          <CardContent className="p-4 space-y-3">
+          <div className="p-4 flex-1 space-y-2.5 overflow-y-auto max-h-[480px]">
             {recentMovements.length === 0 ? (
-              <p className="text-xs text-ink-muted text-center py-6">Belum ada riwayat mutasi stok.</p>
+              <p className="text-xs text-slate-400 text-center py-8">Belum ada riwayat mutasi stok.</p>
             ) : (
               recentMovements.map((m) => {
                 const details = getMovementDetails(m.type);
@@ -283,38 +344,46 @@ export const DashboardPage: React.FC = () => {
                 return (
                   <div
                     key={m.id}
-                    className="p-3 bg-surface-muted border border-surface-border rounded-lg space-y-1.5 text-xs hover:border-surface-subtle transition-colors"
+                    className="p-3 bg-slate-50/70 border border-slate-200/70 rounded-xl space-y-1.5 text-xs hover:border-slate-300 transition-colors shadow-2xs"
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-ink truncate max-w-[170px]">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-slate-900 truncate">
                         {m.product?.name}
                       </span>
-                      <Badge className={details.color}>{details.label}</Badge>
+                      <span
+                        className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                          isPositive
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
+                            : 'bg-rose-50 text-rose-700 border border-rose-200/60'
+                        }`}
+                      >
+                        {details.label}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-ink-muted">
-                      <span>
-                        Perubahan:{' '}
-                        <strong className={isPositive ? 'text-emerald-700' : 'text-rose-700'}>
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="font-semibold">
+                        Qty:{' '}
+                        <span className={isPositive ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}>
                           {isPositive ? '+' : '-'}
                           {formatNumber(m.quantity)} {m.product?.baseUnit}
-                        </strong>
+                        </span>
                       </span>
-                      <span className="font-medium">
+                      <span className="text-slate-500 font-mono text-[11px]">
                         Stok: {formatNumber(m.currentStock)} {m.product?.baseUnit}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-ink-subtle pt-1 border-t border-surface-border/60">
-                      <span>Oleh: {m.user?.name || 'Sistem'}</span>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200/60">
+                      <span>{m.user?.name || 'Sistem'}</span>
                       <span>{formatDate(m.createdAt)}</span>
                     </div>
                   </div>
                 );
               })
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Stock Adjustment Modal */}

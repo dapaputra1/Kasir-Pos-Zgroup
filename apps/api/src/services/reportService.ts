@@ -6,28 +6,22 @@ export class ReportService {
    * Profit & Loss (Laba Rugi) calculation
    */
   static async getProfitAndLoss(startDate?: string, endDate?: string) {
+    const hasDate = Boolean(startDate || endDate);
+    const dateFilter: Prisma.DateTimeFilter = {};
+    if (startDate) dateFilter.gte = new Date(`${startDate}T00:00:00.000Z`);
+    if (endDate) dateFilter.lte = new Date(`${endDate}T23:59:59.999Z`);
+
     const orderWhere: Prisma.OrderWhereInput = {
       status: 'COMPLETED',
+      ...(hasDate ? { createdAt: dateFilter } : {}),
     };
 
     const purchaseWhere: Prisma.PurchaseWhereInput = {
       status: 'RECEIVED',
+      ...(hasDate ? { purchaseDate: dateFilter } : {}),
     };
 
-    if (startDate || endDate) {
-      orderWhere.createdAt = {};
-      purchaseWhere.purchaseDate = {};
-      if (startDate) {
-        orderWhere.createdAt.gte = new Date(`${startDate}T00:00:00.000Z`);
-        purchaseWhere.purchaseDate.gte = new Date(`${startDate}T00:00:00.000Z`);
-      }
-      if (endDate) {
-        orderWhere.createdAt.lte = new Date(`${endDate}T23:59:59.999Z`);
-        purchaseWhere.purchaseDate.lte = new Date(`${endDate}T23:59:59.999Z`);
-      }
-    }
-
-    const [orders, purchases, items] = await Promise.all([
+    const [orders, purchases, items, saleReturns] = await Promise.all([
       prisma.order.findMany({
         where: orderWhere,
         select: {
@@ -55,11 +49,19 @@ export class ReportService {
           totalAmount: true,
         },
       }),
+      prisma.saleReturn.findMany({
+        where: hasDate ? { createdAt: dateFilter } : {},
+        select: { totalAmount: true },
+      }),
     ]);
 
-    const totalRevenue = orders.reduce((acc, curr) => acc + Number(curr.totalAmount), 0);
+    const totalGrossRevenue = orders.reduce((acc, curr) => acc + Number(curr.totalAmount), 0);
     const totalDiscount = orders.reduce((acc, curr) => acc + Number(curr.discountAmount), 0);
     const totalTax = orders.reduce((acc, curr) => acc + Number(curr.taxAmount), 0);
+    const totalReturns = saleReturns.reduce((acc, curr) => acc + Number(curr.totalAmount), 0);
+
+    // Net Revenue = Gross Revenue - Total Returns
+    const totalRevenue = Math.max(0, totalGrossRevenue - totalReturns);
 
     // Total HPP (Cost of Goods Sold)
     const totalCogs = items.reduce((acc, curr) => {
@@ -74,6 +76,8 @@ export class ReportService {
 
     return {
       totalOrders: orders.length,
+      totalGrossRevenue,
+      totalReturns,
       totalRevenue,
       totalDiscount,
       totalTax,
@@ -157,20 +161,21 @@ export class ReportService {
   }
 
   /**
-   * Cash Flow (Arus Kas Masuk vs Keluar)
+   * Cash Flow (Arus Kas Masuk vs Keluar) - Airtight double-counting prevention
    */
   static async getCashflow(startDate?: string, endDate?: string) {
-    const dateFilter: any = {};
+    const dateFilter: Prisma.DateTimeFilter = {};
     if (startDate) dateFilter.gte = new Date(`${startDate}T00:00:00.000Z`);
     if (endDate) dateFilter.lte = new Date(`${endDate}T23:59:59.999Z`);
 
-    const hasDate = startDate || endDate;
+    const hasDate = Boolean(startDate || endDate);
 
-    const [salesPaid, customerDebtPaid, purchasesPaid, supplierDebtPaid] = await Promise.all([
-      // Sales cash received directly
+    const [salesPaid, customerDebtPaid, purchasesPaid, supplierDebtPaid, cashRefunds] = await Promise.all([
+      // Sales cash received directly (excl TEMPO to avoid double-counting installments)
       prisma.order.aggregate({
         where: {
           status: 'COMPLETED',
+          paymentMethod: { not: 'TEMPO' },
           ...(hasDate ? { createdAt: dateFilter } : {}),
         },
         _sum: { amountPaid: true },
@@ -194,6 +199,14 @@ export class ReportService {
         where: hasDate ? { paymentDate: dateFilter } : {},
         _sum: { amount: true },
       }),
+      // Cash refunds paid out to customers from returns
+      prisma.saleReturn.aggregate({
+        where: {
+          refundMethod: 'CASH',
+          ...(hasDate ? { createdAt: dateFilter } : {}),
+        },
+        _sum: { totalAmount: true },
+      }),
     ]);
 
     const cashInSales = Number(salesPaid._sum.amountPaid || 0);
@@ -202,7 +215,8 @@ export class ReportService {
 
     const cashOutPurchases = Number(purchasesPaid._sum.amountPaid || 0);
     const cashOutPayables = Number(supplierDebtPaid._sum.amount || 0);
-    const totalCashOut = cashOutPurchases + cashOutPayables;
+    const cashOutRefunds = Number(cashRefunds._sum.totalAmount || 0);
+    const totalCashOut = cashOutPurchases + cashOutPayables + cashOutRefunds;
 
     const netCashflow = totalCashIn - totalCashOut;
 
@@ -215,6 +229,7 @@ export class ReportService {
       cashOut: {
         purchasesPaid: cashOutPurchases,
         payablesPaid: cashOutPayables,
+        refundsPaid: cashOutRefunds,
         total: totalCashOut,
       },
       netCashflow,

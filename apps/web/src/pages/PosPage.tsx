@@ -20,8 +20,6 @@ import {
   PauseCircle,
 } from 'lucide-react';
 import { api } from '../lib/api';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
 import { Modal } from '../components/ui/Modal';
 import { useToast } from '../components/ui/Toast';
 import { BarcodeScannerModal } from '../components/pos/BarcodeScannerModal';
@@ -339,45 +337,43 @@ export const PosPage: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-5.5rem)] flex flex-col space-y-3">
-      {/* 0. SHIFT & HOLD CART TOOLBAR (Tahap 7) */}
-      <div className="bg-white px-3 py-2 rounded-lg border border-surface-border shadow-xs flex flex-wrap items-center justify-between gap-2 shrink-0 text-xs">
+      {/* 0. COMMAND BAR: SHIFT STATUS & HOLD CART */}
+      <div className="bg-slate-900 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-800 shadow-md flex flex-wrap items-center justify-between gap-3 shrink-0 text-xs">
         {/* Left: Shift Info */}
         <div className="flex items-center gap-3">
           {currentShift ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="font-bold text-ink">Shift Aktif: {currentShift.user.name}</span>
-              <span className="text-ink-muted hidden sm:inline">•</span>
-              <span className="text-ink-muted hidden sm:inline">
-                Modal: <span className="font-semibold text-ink">{formatRupiah(currentShift.startingCash)}</span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                Shift Kasir Aktif: {currentShift.user.name}
               </span>
-              <span className="text-ink-muted hidden sm:inline">•</span>
-              <span className="text-ink-muted hidden sm:inline">
-                Kas Masuk: <span className="font-semibold text-emerald-700">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</span>
+              <span className="text-slate-400 hidden sm:inline">•</span>
+              <span className="text-slate-400 hidden sm:inline">
+                Modal Laci: <strong className="text-white font-mono">{formatRupiah(currentShift.startingCash)}</strong>
               </span>
-              <Button
-                variant="outline"
-                size="sm"
+              <span className="text-slate-400 hidden sm:inline">•</span>
+              <span className="text-slate-400 hidden sm:inline">
+                Kas Tunai: <strong className="text-emerald-400 font-mono">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</strong>
+              </span>
+              <button
                 onClick={() => setIsCloseShiftModalOpen(true)}
-                className="text-[11px] h-7 px-2.5 ml-1 text-rose-600 border-rose-200 hover:bg-rose-50"
+                className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 transition flex items-center gap-1 ml-1"
               >
-                <Wallet className="w-3 h-3 mr-1" />
-                Tutup Shift
-              </Button>
+                <Wallet className="w-3 h-3" />
+                <span>Tutup Shift</span>
+              </button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-              <span className="font-medium text-amber-800">Shift kasir belum dibuka</span>
-              <Button
-                variant="primary"
-                size="sm"
+              <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+              <span className="font-semibold text-amber-300">Shift kasir belum aktif</span>
+              <button
                 onClick={() => setIsStartShiftModalOpen(true)}
-                className="text-[11px] h-7 px-2.5 ml-1"
+                className="text-[11px] h-7 px-3 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center gap-1 ml-1"
               >
-                <DollarSign className="w-3 h-3 mr-1" />
-                Buka Shift Kasir
-              </Button>
+                <DollarSign className="w-3 h-3" />
+                <span>Buka Shift Sekarang</span>
+              </button>
             </div>
           )}
         </div>
@@ -385,42 +381,38 @@ export const PosPage: React.FC = () => {
         {/* Right: Hold Cart Actions */}
         <div className="flex items-center gap-2">
           {cart.length > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => {
                 setHoldCartMode('save');
                 setIsHoldCartModalOpen(true);
               }}
-              className="text-[11px] h-7 px-2.5 text-amber-700 border-amber-300 hover:bg-amber-50"
+              className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5"
             >
-              <PauseCircle className="w-3.5 h-3.5 mr-1" />
-              Tahan Keranjang (Hold)
-            </Button>
+              <PauseCircle className="w-3.5 h-3.5" />
+              <span>Tahan (Hold)</span>
+            </button>
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => {
               setHoldCartMode('list');
               setIsHoldCartModalOpen(true);
             }}
-            className="text-[11px] h-7 px-2.5 text-ink hover:bg-surface-muted"
+            className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
           >
-            <Clock className="w-3.5 h-3.5 mr-1 text-ink-muted" />
-            Keranjang Tertahan
+            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <span>Keranjang Tertahan</span>
             {heldCartCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.2 rounded-full bg-amber-500 text-white font-bold text-[10px]">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[10px]">
                 {heldCartCount}
               </span>
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* 1. TOP BARCODE SCANNER TOOLBAR */}
-      <div className="bg-white p-3 rounded-lg border border-surface-border shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
+      {/* 1. FAST BARCODE SCANNER TOOLBAR */}
+      <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex-1 min-w-[280px] max-w-xl">
           <form
             onSubmit={(e) => {
@@ -430,54 +422,51 @@ export const PosPage: React.FC = () => {
             className="flex items-center gap-2"
           >
             <div className="relative flex-1">
-              <Input
+              <input
                 ref={barcodeInputRef}
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Scan barcode dengan scanner gun (atau tekan Enter)..."
-                prefixElement={<Barcode className="w-5 h-5 text-brand-600" />}
-                className="font-mono text-base font-semibold"
+                placeholder="Scan barcode fisik dengan scanner gun (atau tekan F2)..."
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 pl-11 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-600 transition shadow-2xs"
               />
+              <Barcode className="w-5 h-5 text-emerald-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
-            <Button
+            <button
               type="submit"
-              variant="primary"
-              size="md"
-              className="shrink-0"
+              className="px-4 py-2.5 rounded-xl font-extrabold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm shrink-0 flex items-center gap-1.5 active:scale-95"
             >
-              Input Barcode
-            </Button>
+              <span>Scan Barcode</span>
+            </button>
           </form>
         </div>
 
         {/* Camera Scanner Button & Status */}
         <div className="flex items-center gap-2">
-          <Button
+          <button
             type="button"
-            variant="secondary"
-            size="md"
-            leftIcon={<Camera className="w-4 h-4 text-brand-600" />}
             onClick={() => setIsCameraModalOpen(true)}
+            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition flex items-center gap-1.5 active:scale-95"
             title="Scan menggunakan kamera perangkat (F8)"
           >
-            Scan Kamera (F8)
-          </Button>
+            <Camera className="w-4 h-4 text-emerald-700" />
+            <span>Kamera (F8)</span>
+          </button>
 
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-surface-muted border border-surface-border rounded-md text-xs text-ink-muted">
+          <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200/60 rounded-xl text-xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-semibold text-ink">Scanner Hardware Ready</span>
+            <span className="font-bold text-emerald-800">Scanner Standby</span>
           </div>
         </div>
       </div>
 
       {/* Tablet Portrait Tabs Toggle */}
-      <div className="lg:hidden flex bg-white border border-surface-border rounded-lg p-1 shrink-0">
+      <div className="lg:hidden flex bg-white border border-slate-200 rounded-xl p-1 shrink-0 shadow-2xs">
         <button
           onClick={() => setActiveTabletTab('catalog')}
-          className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${
             activeTabletTab === 'catalog'
-              ? 'bg-brand-500 text-white shadow-xs'
-              : 'text-ink-muted hover:text-ink'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <Package className="w-4 h-4" />
@@ -485,16 +474,16 @@ export const PosPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTabletTab('cart')}
-          className={`flex-1 py-2 text-xs font-bold rounded-md transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${
             activeTabletTab === 'cart'
-              ? 'bg-brand-500 text-white shadow-xs'
-              : 'text-ink-muted hover:text-ink'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <ShoppingCart className="w-4 h-4" />
-          <span>Keranjang Kasir ({cart.length})</span>
+          <span>Keranjang ({cart.length})</span>
           {cart.length > 0 && (
-            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full">
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold">
               {formatRupiah(totalAmount)}
             </span>
           )}
@@ -502,32 +491,33 @@ export const PosPage: React.FC = () => {
       </div>
 
       {/* 2. MAIN POS WORKSPACE (2-COLUMN GRID) */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-0 overflow-hidden">
         {/* LEFT COLUMN: CATALOG & QUICK PRODUCT SELECTION */}
         <div
-          className={`lg:col-span-7 flex flex-col bg-white rounded-lg border border-surface-border shadow-xs overflow-hidden ${
+          className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden ${
             activeTabletTab === 'catalog' ? 'flex' : 'hidden lg:flex'
           }`}
         >
           {/* Catalog Search & Category Filters Header */}
-          <div className="p-3 border-b border-surface-border space-y-2.5 shrink-0 bg-white">
+          <div className="p-3 border-b border-slate-200/80 space-y-2.5 shrink-0 bg-slate-50/50">
             <div className="relative">
-              <Input
-                placeholder="Cari barang berdasarkan nama atau barcode (F2)..."
+              <input
+                placeholder="Ketik nama sembako, SKU, atau barcode... (F2)"
                 value={catalogSearch}
                 onChange={(e) => setCatalogSearch(e.target.value)}
-                prefixElement={<Search className="w-4 h-4 text-ink-muted" />}
+                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 pl-9 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition"
               />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
 
             {/* Category horizontal scroll pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
               <button
                 onClick={() => setSelectedCategoryId(null)}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap min-h-[32px] ${
+                className={`px-3 py-1.5 rounded-full font-bold transition-all whitespace-nowrap text-xs shadow-2xs ${
                   selectedCategoryId === null
-                    ? 'bg-ink text-white'
-                    : 'bg-surface-subtle text-ink hover:bg-gray-200'
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Semua Kategori
@@ -536,10 +526,10 @@ export const PosPage: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap min-h-[32px] ${
+                  className={`px-3 py-1.5 rounded-full font-bold transition-all whitespace-nowrap text-xs shadow-2xs ${
                     selectedCategoryId === cat.id
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-surface-subtle text-ink hover:bg-gray-200'
+                      ? 'bg-emerald-600 text-white shadow-emerald-950/20'
+                      : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   {cat.name}
@@ -551,14 +541,14 @@ export const PosPage: React.FC = () => {
           {/* Product Cards Grid */}
           <div className="flex-1 p-3 overflow-y-auto">
             {isCatalogLoading ? (
-              <div className="py-20 text-center text-ink-muted text-xs">
-                <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <span>Memuat produk sembako...</span>
+              <div className="py-20 text-center text-slate-400 text-xs">
+                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span className="font-semibold">Memuat katalog sembako...</span>
               </div>
             ) : catalogProducts.length === 0 ? (
-              <div className="py-16 text-center text-ink-muted text-xs">
-                <Package className="w-10 h-10 mx-auto text-ink-subtle opacity-50 mb-2" />
-                <p className="font-semibold text-ink">Tidak ada produk ditemukan</p>
+              <div className="py-16 text-center text-slate-400 text-xs space-y-1">
+                <Package className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                <p className="font-extrabold text-slate-700">Tidak ada produk ditemukan</p>
                 <p>Coba kata kunci pencarian atau kategori lain.</p>
               </div>
             ) : (
@@ -572,23 +562,25 @@ export const PosPage: React.FC = () => {
                       ? Number(baseUnit.wholesalePrice)
                       : Number(baseUnit?.price || 0);
 
+                  const otherUnitsCount = prod.units.length - 1;
+
                   return (
                     <button
                       key={prod.id}
                       type="button"
                       disabled={isOut}
                       onClick={() => addProductToCart(prod)}
-                      className={`p-3 rounded-lg border text-left flex flex-col justify-between transition-all select-none min-h-[115px] ${
+                      className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all select-none min-h-[120px] group relative ${
                         isOut
-                          ? 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white border-surface-border hover:border-brand-500 hover:shadow-xs active:scale-98'
+                          ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
+                          : 'bg-white border-slate-200/80 hover:border-emerald-500 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.98]'
                       }`}
                     >
                       <div>
-                        <div className="flex items-center justify-between gap-1 text-[10px] text-ink-muted mb-0.5">
-                          <span className="font-mono">{prod.barcode || prod.sku}</span>
+                        <div className="flex items-center justify-between gap-1 text-[10px] text-slate-400 mb-1">
+                          <span className="font-mono">{prod.sku}</span>
                           <span
-                            className={`font-bold ${
+                            className={`font-bold tabular-nums ${
                               isOut
                                 ? 'text-rose-600'
                                 : stockNum <= Number(prod.minStock)
@@ -599,16 +591,23 @@ export const PosPage: React.FC = () => {
                             Stok: {formatNumber(stockNum)} {prod.baseUnit}
                           </span>
                         </div>
-                        <h4 className="font-bold text-xs text-ink line-clamp-2 leading-tight">
+                        <h4 className="font-extrabold text-xs text-slate-900 line-clamp-2 leading-tight group-hover:text-emerald-800 transition-colors">
                           {prod.name}
                         </h4>
                       </div>
 
-                      <div className="mt-2 pt-1 border-t border-surface-border/60 flex items-center justify-between">
-                        <span className="font-extrabold text-xs text-brand-600">
-                          {formatRupiah(displayPrice)}
-                        </span>
-                        <span className="text-[10px] text-ink-muted font-medium bg-surface-subtle px-1.5 py-0.5 rounded">
+                      <div className="mt-2.5 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                        <div>
+                          <span className="font-black text-xs text-emerald-700 tabular-nums block">
+                            {formatRupiah(displayPrice)}
+                          </span>
+                          {otherUnitsCount > 0 && (
+                            <span className="text-[9px] text-slate-500 font-semibold block">
+                              +{otherUnitsCount} satuan lain
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
                           {baseUnit?.unitName || prod.baseUnit}
                         </span>
                       </div>
@@ -622,17 +621,19 @@ export const PosPage: React.FC = () => {
 
         {/* RIGHT COLUMN: POS CART & CHECKOUT CONTROLS */}
         <div
-          className={`lg:col-span-5 flex flex-col bg-white rounded-lg border border-surface-border shadow-xs overflow-hidden ${
+          className={`lg:col-span-5 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden ${
             activeTabletTab === 'cart' ? 'flex' : 'hidden lg:flex'
           }`}
         >
           {/* Cart Header & Customer Tier Toggle */}
-          <div className="p-3 border-b border-surface-border bg-surface-muted/50 flex flex-col gap-2 shrink-0">
+          <div className="p-3.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col gap-2.5 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-brand-600" />
-                <h3 className="text-sm font-bold text-ink">Keranjang Penjualan</h3>
-                <span className="bg-brand-100 text-brand-800 text-xs font-black px-2 py-0.5 rounded-full">
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-black text-slate-900 tracking-tight">Keranjang Kasir</h3>
+                <span className="bg-emerald-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full shadow-2xs">
                   {cart.length} item
                 </span>
               </div>
@@ -641,23 +642,23 @@ export const PosPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCart([])}
-                  className="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1 p-1 hover:bg-rose-50 rounded"
+                  className="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 px-2 py-1 hover:bg-rose-50 rounded-lg transition"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
+                  <RotateCcw className="w-3 h-3" />
                   <span>Kosongkan</span>
                 </button>
               )}
             </div>
 
             {/* Customer Tier selector */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('REGULAR')}
-                className={`py-1.5 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
                   customerTier === 'REGULAR'
-                    ? 'bg-white border-brand-500 text-brand-700 shadow-xs ring-1 ring-brand-500'
-                    : 'bg-surface-subtle border-surface-border text-ink-muted hover:text-ink'
+                    ? 'bg-white border-emerald-600 text-emerald-800 shadow-xs ring-2 ring-emerald-500/20'
+                    : 'bg-slate-100/80 border-slate-200/80 text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <UserCheck className="w-3.5 h-3.5" />
@@ -667,31 +668,31 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('GROSIR')}
-                className={`py-1.5 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
                   customerTier === 'GROSIR'
-                    ? 'bg-brand-500 text-white border-brand-600 shadow-xs'
-                    : 'bg-surface-subtle border-surface-border text-ink-muted hover:text-ink'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-transparent shadow-xs'
+                    : 'bg-slate-100/80 border-slate-200/80 text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <DollarSign className="w-3.5 h-3.5" />
-                <span>Harga Grosir / Partai</span>
+                <span>Langganan Grosir</span>
               </button>
             </div>
 
             {/* Customer dropdown if Grosir tier is active */}
             {customerTier === 'GROSIR' && (
-              <div className="pt-1">
+              <div className="pt-0.5">
                 <select
                   value={selectedCustomerId || ''}
                   onChange={(e) =>
                     setSelectedCustomerId(e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-full text-xs font-semibold bg-white border border-brand-300 rounded px-2.5 py-1.5 text-brand-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full text-xs font-bold bg-white border border-emerald-300 rounded-xl px-3 py-2 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
                 >
-                  <option value="">-- Pilih Toko / Pelanggan Grosir --</option>
+                  <option value="">-- Pilih Toko Langganan / Bon Tempo --</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.code})
+                      {c.name} ({c.code}) {Number(c.creditLimit) > 0 ? `• Plafon ${formatRupiah(c.creditLimit)}` : ''}
                     </option>
                   ))}
                 </select>
@@ -700,12 +701,14 @@ export const PosPage: React.FC = () => {
           </div>
 
           {/* Cart Items List */}
-          <div className="flex-1 p-3 overflow-y-auto divide-y divide-surface-border">
+          <div className="flex-1 p-3 overflow-y-auto divide-y divide-slate-100">
             {cart.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center py-12 text-center text-ink-muted text-xs space-y-2">
-                <ShoppingCart className="w-12 h-12 text-ink-subtle opacity-40 mb-1" />
-                <p className="font-bold text-sm text-ink">Keranjang Masih Kosong</p>
-                <p className="max-w-xs text-ink-muted">
+              <div className="h-full flex flex-col items-center justify-center py-12 text-center text-slate-400 text-xs space-y-2">
+                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-300">
+                  <ShoppingCart className="w-6 h-6" />
+                </div>
+                <p className="font-extrabold text-sm text-slate-700">Keranjang Masih Kosong</p>
+                <p className="max-w-xs text-slate-400">
                   Scan barcode barang sembako atau pilih produk dari katalog di sebelah kiri.
                 </p>
               </div>
@@ -715,21 +718,22 @@ export const PosPage: React.FC = () => {
                 const isOverStock = totalBaseUnitsNeeded > item.currentStock;
 
                 return (
-                  <div key={`${item.productId}-${item.selectedUnit.id}`} className="py-2.5 space-y-2">
+                  <div key={`${item.productId}-${item.selectedUnit.id}`} className="py-2.5 space-y-2 group">
                     <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <h4 className="font-bold text-xs text-ink leading-tight">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-extrabold text-xs text-slate-900 leading-tight truncate">
                           {item.productName}
                         </h4>
-                        <div className="text-[10px] text-ink-muted font-mono">{item.barcode || item.sku}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{item.selectedUnit.barcode || item.barcode || item.sku}</div>
                       </div>
 
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}
-                        className="text-ink-subtle hover:text-rose-600 p-1 rounded transition-colors"
+                        className="text-slate-300 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 transition-colors"
+                        title="Hapus barang"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
 
@@ -739,7 +743,7 @@ export const PosPage: React.FC = () => {
                         <select
                           value={item.selectedUnit.id}
                           onChange={(e) => handleUnitChange(index, Number(e.target.value))}
-                          className="bg-surface-subtle text-ink font-semibold text-xs rounded border border-surface-border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          className="bg-slate-100 text-slate-800 font-bold text-xs rounded-lg border border-slate-200/80 px-2 py-1 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                         >
                           {item.availableUnits.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -750,13 +754,13 @@ export const PosPage: React.FC = () => {
                       </div>
 
                       {/* Quantity Controls */}
-                      <div className="flex items-center border border-surface-border rounded-md overflow-hidden bg-white">
+                      <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50 shadow-2xs">
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(index, item.quantity - 1)}
-                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center"
+                          className="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors min-h-[28px] min-w-[28px] flex items-center justify-center active:scale-90"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-3 h-3" />
                         </button>
                         <input
                           type="number"
@@ -766,23 +770,23 @@ export const PosPage: React.FC = () => {
                           onChange={(e) =>
                             handleQuantityChange(index, parseFloat(e.target.value) || 0)
                           }
-                          className="w-12 text-center text-xs font-bold text-ink py-1 focus:outline-none"
+                          className="w-12 text-center text-xs font-black text-slate-900 py-1 bg-white focus:outline-none tabular-nums"
                         />
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(index, item.quantity + 1)}
-                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center"
+                          className="px-2 py-1 text-slate-600 hover:text-slate-900 hover:bg-slate-200 transition-colors min-h-[28px] min-w-[28px] flex items-center justify-center active:scale-90"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3 h-3" />
                         </button>
                       </div>
 
                       {/* Subtotal */}
                       <div className="text-right">
-                        <div className="font-extrabold text-xs text-brand-600">
+                        <div className="font-black text-xs text-emerald-800 tabular-nums">
                           {formatRupiah(item.subtotal)}
                         </div>
-                        <div className="text-[10px] text-ink-muted">
+                        <div className="text-[10px] text-slate-400 font-mono">
                           @{formatRupiah(item.unitPrice)}
                         </div>
                       </div>
@@ -790,11 +794,11 @@ export const PosPage: React.FC = () => {
 
                     {/* Stock Alert Warning if insufficient */}
                     {isOverStock && (
-                      <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] p-1.5 rounded flex items-center gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] p-2 rounded-lg flex items-center gap-1.5 font-medium">
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-600" />
                         <span>
                           Stok tidak mencukupi! Butuh {formatNumber(totalBaseUnitsNeeded)}{' '}
-                          {item.baseUnit}, stok fisik hanya {formatNumber(item.currentStock)}{' '}
+                          {item.baseUnit}, stok fisik di toko hanya {formatNumber(item.currentStock)}{' '}
                           {item.baseUnit}.
                         </span>
                       </div>
@@ -806,35 +810,42 @@ export const PosPage: React.FC = () => {
           </div>
 
           {/* Cart Bottom Summary & Checkout Button */}
-          <div className="p-3.5 bg-surface-muted/60 border-t border-surface-border space-y-2.5 shrink-0">
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between text-ink-muted">
+          <div className="p-4 bg-slate-50/80 border-t border-slate-200 space-y-3 shrink-0">
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between text-slate-500 font-medium">
                 <span>Subtotal ({cart.length} item)</span>
-                <span className="font-bold text-ink">{formatRupiah(subtotal)}</span>
+                <span className="font-bold text-slate-800 font-mono tabular-nums">{formatRupiah(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-rose-600">
-                  <span>Diskon</span>
-                  <span>-{formatRupiah(discountAmount)}</span>
+                <div className="flex justify-between text-rose-600 font-medium">
+                  <span>Potongan Diskon</span>
+                  <span className="font-mono tabular-nums">-{formatRupiah(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-black text-ink pt-1 border-t border-surface-border">
-                <span>Total Tagihan:</span>
-                <span className="text-brand-600 text-base">{formatRupiah(totalAmount)}</span>
+              <div className="flex justify-between items-baseline text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Total Tagihan:</span>
+                <span className="text-emerald-700 text-lg sm:text-xl font-black font-mono tabular-nums">
+                  {formatRupiah(totalAmount)}
+                </span>
               </div>
             </div>
 
-            <Button
+            <button
               type="button"
-              variant="primary"
-              size="lg"
               disabled={cart.length === 0}
               onClick={openPaymentModal}
-              className="w-full font-bold shadow-md text-base"
-              leftIcon={<CreditCard className="w-5 h-5" />}
+              className={`w-full py-3.5 px-4 rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${
+                cart.length === 0
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/20'
+              }`}
             >
-              Bayar Sekarang (F4) — {formatRupiah(totalAmount)}
-            </Button>
+              <CreditCard className="w-4 h-4" />
+              <span>Bayar Transaksi</span>
+              <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
+                [F4]
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -849,16 +860,18 @@ export const PosPage: React.FC = () => {
       >
         <div className="space-y-4">
           {/* Total Tagihan Banner */}
-          <div className="p-4 bg-brand-50 border border-brand-200 rounded-lg text-center space-y-0.5">
-            <span className="text-xs font-bold text-brand-800 uppercase tracking-wider">
+          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl text-center space-y-0.5 shadow-2xs">
+            <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
               Total yang Harus Dibayar
             </span>
-            <div className="text-3xl font-black text-brand-600">{formatRupiah(totalAmount)}</div>
+            <div className="text-3xl font-black text-emerald-900 font-mono tabular-nums">
+              {formatRupiah(totalAmount)}
+            </div>
           </div>
 
           {/* Metode Pembayaran Tabs */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-ink uppercase tracking-wider">
+            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">
               Metode Pembayaran
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -867,10 +880,10 @@ export const PosPage: React.FC = () => {
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-1 text-xs font-bold rounded-md border text-center transition-colors ${
+                  className={`py-2 px-1 text-xs font-bold rounded-xl border text-center transition-all ${
                     paymentMethod === method
-                      ? 'bg-brand-500 text-white border-brand-600 shadow-xs'
-                      : 'bg-surface-subtle border-surface-border text-ink hover:bg-gray-200'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-950/20'
+                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
                   {method === 'TEMPO' ? 'Tempo / Bon' : method}
@@ -883,12 +896,12 @@ export const PosPage: React.FC = () => {
           {paymentMethod === 'CASH' && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-ink uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs font-extrabold text-slate-700 uppercase tracking-wider">
                   <span>Pilihan Cepat Uang Tunai</span>
                   <button
                     type="button"
                     onClick={() => setAmountPaid(totalAmount)}
-                    className="text-brand-600 hover:underline normal-case font-semibold"
+                    className="text-emerald-700 hover:underline normal-case font-bold"
                   >
                     Uang Pas
                   </button>
@@ -899,10 +912,10 @@ export const PosPage: React.FC = () => {
                       key={amt}
                       type="button"
                       onClick={() => setAmountPaid(amt)}
-                      className={`p-2 rounded border transition-colors ${
+                      className={`p-2 rounded-xl border transition-all tabular-nums ${
                         amountPaid === amt
-                          ? 'bg-brand-100 border-brand-400 text-brand-900 ring-1 ring-brand-500'
-                          : 'bg-white border-surface-border hover:bg-surface-subtle'
+                          ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20 font-black'
+                          : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
                       }`}
                     >
                       {formatRupiah(amt)}
@@ -911,21 +924,25 @@ export const PosPage: React.FC = () => {
                 </div>
               </div>
 
-              <Input
-                label="Uang Tunai Diterima"
-                type="number"
-                prefixElement="Rp"
-                value={amountPaid || ''}
-                onChange={(e) => setAmountPaid(parseFloat(e.target.value) || 0)}
-                className="text-lg font-bold"
-              />
+              <div>
+                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                  Uang Tunai Diterima (Rp)
+                </label>
+                <input
+                  type="number"
+                  value={amountPaid || ''}
+                  onChange={(e) => setAmountPaid(parseFloat(e.target.value) || 0)}
+                  placeholder="0"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xl font-mono font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                />
+              </div>
 
               {/* Kembalian calculation banner */}
-              <div className="p-3 bg-surface-subtle rounded-lg border border-surface-border flex items-center justify-between">
-                <span className="text-xs font-bold text-ink">Kembalian Uang:</span>
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Kembalian Uang:</span>
                 <span
-                  className={`text-lg font-black ${
-                    amountPaid < totalAmount ? 'text-rose-600' : 'text-emerald-600'
+                  className={`text-lg font-black font-mono tabular-nums ${
+                    amountPaid < totalAmount ? 'text-rose-600' : 'text-emerald-700'
                   }`}
                 >
                   {amountPaid < totalAmount
@@ -937,44 +954,52 @@ export const PosPage: React.FC = () => {
           )}
 
           {/* Diskon / Catatan Tambahan */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-surface-border">
-            <Input
-              label="Potongan Diskon (Rp)"
-              type="number"
-              prefixElement="Rp"
-              value={discountAmount || ''}
-              onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
-            />
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Potongan Diskon (Rp)
+              </label>
+              <input
+                type="number"
+                value={discountAmount || ''}
+                onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
+                placeholder="0"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              />
+            </div>
 
-            <Input
-              label="Catatan Struk (Opsional)"
-              placeholder="Contoh: Meja 3 / Kirim kurir"
-              value={orderNotes}
-              onChange={(e) => setOrderNotes(e.target.value)}
-            />
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Catatan Struk (Opsional)
+              </label>
+              <input
+                placeholder="Misal: Bon titip warung"
+                value={orderNotes}
+                onChange={(e) => setOrderNotes(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+              />
+            </div>
           </div>
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-surface-border flex items-center justify-end gap-3">
-            <Button
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <button
               type="button"
-              variant="outline"
               onClick={() => setIsPaymentModalOpen(false)}
               disabled={checkoutMutation.isPending}
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
             >
               Batal
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="primary"
-              size="lg"
-              isLoading={checkoutMutation.isPending}
               disabled={paymentMethod === 'CASH' && amountPaid < totalAmount}
               onClick={() => checkoutMutation.mutate()}
-              leftIcon={<CheckCircle2 className="w-5 h-5" />}
+              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white transition shadow-md shadow-emerald-950/20 disabled:opacity-50 flex items-center gap-2"
             >
-              Selesaikan Transaksi
-            </Button>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Selesaikan Transaksi & Cetak Struk</span>
+            </button>
           </div>
         </div>
       </Modal>
