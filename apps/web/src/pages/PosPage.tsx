@@ -338,26 +338,26 @@ export const PosPage: React.FC = () => {
   return (
     <div className="h-[calc(100vh-5.5rem)] flex flex-col space-y-3">
       {/* 0. COMMAND BAR: SHIFT STATUS & HOLD CART */}
-      <div className="bg-slate-900 text-slate-200 px-4 py-2.5 rounded-xl border border-slate-800 shadow-md flex flex-wrap items-center justify-between gap-3 shrink-0 text-xs">
+      <div className="bg-white text-slate-800 px-4 py-2 rounded-lg border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0 text-xs">
         {/* Left: Shift Info */}
         <div className="flex items-center gap-3">
           {currentShift ? (
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                Shift Kasir Aktif: {currentShift.user.name}
+              <span className="flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                Shift: {currentShift.user.name}
               </span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-slate-400 hidden sm:inline">
-                Modal Laci: <strong className="text-white font-mono">{formatRupiah(currentShift.startingCash)}</strong>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-600 hidden sm:inline">
+                Modal Awal: <strong className="text-slate-900 font-mono">{formatRupiah(currentShift.startingCash)}</strong>
               </span>
-              <span className="text-slate-400 hidden sm:inline">•</span>
-              <span className="text-slate-400 hidden sm:inline">
-                Kas Tunai: <strong className="text-emerald-400 font-mono">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</strong>
+              <span className="text-slate-300 hidden sm:inline">•</span>
+              <span className="text-slate-600 hidden sm:inline">
+                Kas Penjualan: <strong className="text-slate-900 font-mono">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</strong>
               </span>
               <button
                 onClick={() => setIsCloseShiftModalOpen(true)}
-                className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border border-rose-500/30 transition flex items-center gap-1 ml-1"
+                className="text-[11px] h-6 px-2 rounded font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1 ml-1"
               >
                 <Wallet className="w-3 h-3" />
                 <span>Tutup Shift</span>
@@ -365,14 +365,14 @@ export const PosPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
-              <span className="font-semibold text-amber-300">Shift kasir belum aktif</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span className="font-medium text-slate-700">Shift kasir belum aktif</span>
               <button
                 onClick={() => setIsStartShiftModalOpen(true)}
-                className="text-[11px] h-7 px-3 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs transition flex items-center gap-1 ml-1"
+                className="text-[11px] h-6 px-2.5 rounded font-medium bg-slate-900 hover:bg-slate-800 text-white transition flex items-center gap-1 ml-1"
               >
                 <DollarSign className="w-3 h-3" />
-                <span>Buka Shift Sekarang</span>
+                <span>Buka Shift</span>
               </button>
             </div>
           )}
@@ -386,10 +386,10 @@ export const PosPage: React.FC = () => {
                 setHoldCartMode('save');
                 setIsHoldCartModalOpen(true);
               }}
-              className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 transition flex items-center gap-1.5"
+              className="text-[11px] h-6 px-2 rounded font-medium text-slate-700 hover:bg-slate-100 border border-slate-200 transition flex items-center gap-1"
             >
-              <PauseCircle className="w-3.5 h-3.5" />
-              <span>Tahan (Hold)</span>
+              <PauseCircle className="w-3 h-3 text-slate-500" />
+              <span>Tahan [F7]</span>
             </button>
           )}
 
@@ -398,12 +398,12 @@ export const PosPage: React.FC = () => {
               setHoldCartMode('list');
               setIsHoldCartModalOpen(true);
             }}
-            className="text-[11px] h-7 px-2.5 rounded-lg font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5"
+            className="text-[11px] h-6 px-2 rounded font-medium text-slate-700 hover:bg-slate-100 border border-slate-200 transition flex items-center gap-1"
           >
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <Clock className="w-3 h-3 text-slate-500" />
             <span>Keranjang Tertahan</span>
             {heldCartCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-[10px]">
+              <span className="ml-0.5 px-1 rounded-full bg-slate-200 text-slate-800 font-mono font-bold text-[10px]">
                 {heldCartCount}
               </span>
             )}
@@ -412,7 +412,7 @@ export const PosPage: React.FC = () => {
       </div>
 
       {/* 1. FAST BARCODE SCANNER TOOLBAR */}
-      <div className="bg-white p-3 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex-1 min-w-[280px] max-w-xl">
           <form
             onSubmit={(e) => {
@@ -427,13 +427,13 @@ export const PosPage: React.FC = () => {
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
                 placeholder="Scan barcode fisik dengan scanner gun (atau tekan F2)..."
-                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 pl-11 text-sm font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-600 transition shadow-2xs"
+                className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 pl-9 text-xs font-mono font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition"
               />
-              <Barcode className="w-5 h-5 text-emerald-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Barcode className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </div>
             <button
               type="submit"
-              className="px-4 py-2.5 rounded-xl font-extrabold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-sm shrink-0 flex items-center gap-1.5 active:scale-95"
+              className="px-3.5 py-2 rounded-md font-medium text-xs bg-slate-900 hover:bg-slate-800 text-white transition shrink-0 flex items-center gap-1.5"
             >
               <span>Scan Barcode</span>
             </button>
@@ -445,14 +445,14 @@ export const PosPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCameraModalOpen(true)}
-            className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 transition flex items-center gap-1.5 active:scale-95"
+            className="px-2.5 py-1.5 rounded-md text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition flex items-center gap-1.5"
             title="Scan menggunakan kamera perangkat (F8)"
           >
-            <Camera className="w-4 h-4 text-emerald-700" />
+            <Camera className="w-3.5 h-3.5 text-slate-500" />
             <span>Kamera (F8)</span>
           </button>
 
-          <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200/60 rounded-xl text-xs">
+          <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs text-slate-600">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-bold text-emerald-800">Scanner Standby</span>
           </div>
@@ -460,12 +460,12 @@ export const PosPage: React.FC = () => {
       </div>
 
       {/* Tablet Portrait Tabs Toggle */}
-      <div className="lg:hidden flex bg-white border border-slate-200 rounded-xl p-1 shrink-0 shadow-2xs">
+      <div className="lg:hidden flex bg-white border border-slate-200 rounded-lg p-1 shrink-0 shadow-xs">
         <button
           onClick={() => setActiveTabletTab('catalog')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center justify-center gap-2 ${
             activeTabletTab === 'catalog'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -474,16 +474,16 @@ export const PosPage: React.FC = () => {
         </button>
         <button
           onClick={() => setActiveTabletTab('cart')}
-          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-2 ${
+          className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-colors flex items-center justify-center gap-2 ${
             activeTabletTab === 'cart'
-              ? 'bg-emerald-600 text-white shadow-xs'
+              ? 'bg-slate-900 text-white'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
           <ShoppingCart className="w-4 h-4" />
           <span>Keranjang ({cart.length})</span>
           {cart.length > 0 && (
-            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold">
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">
               {formatRupiah(totalAmount)}
             </span>
           )}
@@ -491,45 +491,45 @@ export const PosPage: React.FC = () => {
       </div>
 
       {/* 2. MAIN POS WORKSPACE (2-COLUMN GRID) */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3 min-h-0 overflow-hidden">
         {/* LEFT COLUMN: CATALOG & QUICK PRODUCT SELECTION */}
         <div
-          className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden ${
+          className={`lg:col-span-7 flex flex-col bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden ${
             activeTabletTab === 'catalog' ? 'flex' : 'hidden lg:flex'
           }`}
         >
           {/* Catalog Search & Category Filters Header */}
-          <div className="p-3 border-b border-slate-200/80 space-y-2.5 shrink-0 bg-slate-50/50">
+          <div className="p-2.5 border-b border-slate-200 space-y-2 shrink-0 bg-slate-50/50">
             <div className="relative">
               <input
-                placeholder="Ketik nama sembako, SKU, atau barcode... (F2)"
+                placeholder="Cari sembako, SKU, atau barcode... (F2)"
                 value={catalogSearch}
                 onChange={(e) => setCatalogSearch(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2 pl-9 text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 transition"
+                className="w-full bg-white border border-slate-200 rounded-md px-3 py-1.5 pl-8 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400 transition"
               />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
 
             {/* Category horizontal scroll pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 text-xs">
               <button
                 onClick={() => setSelectedCategoryId(null)}
-                className={`px-3 py-1.5 rounded-full font-bold transition-all whitespace-nowrap text-xs shadow-2xs ${
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors whitespace-nowrap text-xs ${
                   selectedCategoryId === null
                     ? 'bg-slate-900 text-white'
-                    : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                Semua Kategori
+                Semua
               </button>
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-full font-bold transition-all whitespace-nowrap text-xs shadow-2xs ${
+                  className={`px-2.5 py-1 rounded-md font-medium transition-colors whitespace-nowrap text-xs ${
                     selectedCategoryId === cat.id
-                      ? 'bg-emerald-600 text-white shadow-emerald-950/20'
-                      : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   {cat.name}
@@ -539,20 +539,20 @@ export const PosPage: React.FC = () => {
           </div>
 
           {/* Product Cards Grid */}
-          <div className="flex-1 p-3 overflow-y-auto">
+          <div className="flex-1 p-2.5 overflow-y-auto">
             {isCatalogLoading ? (
               <div className="py-20 text-center text-slate-400 text-xs">
-                <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                <span className="font-semibold">Memuat katalog sembako...</span>
+                <div className="w-6 h-6 border-2 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span>Memuat katalog...</span>
               </div>
             ) : catalogProducts.length === 0 ? (
               <div className="py-16 text-center text-slate-400 text-xs space-y-1">
-                <Package className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                <p className="font-extrabold text-slate-700">Tidak ada produk ditemukan</p>
-                <p>Coba kata kunci pencarian atau kategori lain.</p>
+                <Package className="w-8 h-8 mx-auto text-slate-300 mb-1" />
+                <p className="font-semibold text-slate-700">Tidak ada produk ditemukan</p>
+                <p className="text-slate-400">Coba kata kunci pencarian atau kategori lain.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2">
                 {catalogProducts.map((prod) => {
                   const stockNum = Number(prod.currentStock);
                   const isOut = stockNum <= 0;
@@ -570,44 +570,44 @@ export const PosPage: React.FC = () => {
                       type="button"
                       disabled={isOut}
                       onClick={() => addProductToCart(prod)}
-                      className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all select-none min-h-[120px] group relative ${
+                      className={`p-2.5 rounded-lg border text-left flex flex-col justify-between transition-colors select-none min-h-[110px] group ${
                         isOut
                           ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white border-slate-200/80 hover:border-emerald-500 hover:shadow-card-hover hover:-translate-y-0.5 active:scale-[0.98]'
+                          : 'bg-white border-slate-200 hover:border-slate-400 hover:bg-slate-50/50'
                       }`}
                     >
                       <div>
-                        <div className="flex items-center justify-between gap-1 text-[10px] text-slate-400 mb-1">
+                        <div className="flex items-center justify-between gap-1 text-[10px] text-slate-400 mb-0.5">
                           <span className="font-mono">{prod.sku}</span>
                           <span
-                            className={`font-bold tabular-nums ${
+                            className={`font-semibold tabular-nums ${
                               isOut
                                 ? 'text-rose-600'
                                 : stockNum <= Number(prod.minStock)
                                 ? 'text-amber-600'
-                                : 'text-emerald-700'
+                                : 'text-slate-600'
                             }`}
                           >
                             Stok: {formatNumber(stockNum)} {prod.baseUnit}
                           </span>
                         </div>
-                        <h4 className="font-extrabold text-xs text-slate-900 line-clamp-2 leading-tight group-hover:text-emerald-800 transition-colors">
+                        <h4 className="font-semibold text-xs text-slate-900 line-clamp-2 leading-tight">
                           {prod.name}
                         </h4>
                       </div>
 
-                      <div className="mt-2.5 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                      <div className="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between gap-1">
                         <div>
-                          <span className="font-black text-xs text-emerald-700 tabular-nums block">
+                          <span className="font-mono font-bold text-xs text-slate-900 tabular-nums block">
                             {formatRupiah(displayPrice)}
                           </span>
                           {otherUnitsCount > 0 && (
-                            <span className="text-[9px] text-slate-500 font-semibold block">
+                            <span className="text-[9px] text-slate-400 font-medium block">
                               +{otherUnitsCount} satuan lain
                             </span>
                           )}
                         </div>
-                        <span className="text-[10px] text-slate-600 font-bold bg-slate-100 px-2 py-0.5 rounded-md shrink-0">
+                        <span className="text-[10px] text-slate-600 font-medium bg-slate-100 px-1.5 py-0.5 rounded shrink-0">
                           {baseUnit?.unitName || prod.baseUnit}
                         </span>
                       </div>
@@ -621,19 +621,18 @@ export const PosPage: React.FC = () => {
 
         {/* RIGHT COLUMN: POS CART & CHECKOUT CONTROLS */}
         <div
-          className={`lg:col-span-5 flex flex-col bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden ${
+          className={`lg:col-span-5 flex flex-col bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden ${
             activeTabletTab === 'cart' ? 'flex' : 'hidden lg:flex'
           }`}
         >
           {/* Cart Header & Customer Tier Toggle */}
-          <div className="p-3.5 border-b border-slate-200/80 bg-slate-50/70 flex flex-col gap-2.5 shrink-0">
+          <div className="p-3 border-b border-slate-200 bg-slate-50/50 flex flex-col gap-2 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                  <ShoppingCart className="w-4 h-4" />
-                </div>
-                <h3 className="text-sm font-black text-slate-900 tracking-tight">Keranjang Kasir</h3>
-                <span className="bg-emerald-600 text-white text-[11px] font-black px-2 py-0.5 rounded-full shadow-2xs">
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  Keranjang Kasir
+                </h3>
+                <span className="bg-slate-200 text-slate-800 text-[10px] font-bold px-1.5 py-0.5 rounded">
                   {cart.length} item
                 </span>
               </div>
@@ -642,7 +641,7 @@ export const PosPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCart([])}
-                  className="text-xs text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 px-2 py-1 hover:bg-rose-50 rounded-lg transition"
+                  className="text-[11px] text-rose-600 hover:text-rose-800 font-medium flex items-center gap-1"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>Kosongkan</span>
@@ -651,30 +650,30 @@ export const PosPage: React.FC = () => {
             </div>
 
             {/* Customer Tier selector */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-1.5 bg-slate-200/60 p-0.5 rounded-md">
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('REGULAR')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                className={`py-1 px-2 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   customerTier === 'REGULAR'
-                    ? 'bg-white border-emerald-600 text-emerald-800 shadow-xs ring-2 ring-emerald-500/20'
-                    : 'bg-slate-100/80 border-slate-200/80 text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <UserCheck className="w-3.5 h-3.5" />
+                <UserCheck className="w-3 h-3" />
                 <span>Eceran (Umum)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('GROSIR')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 shadow-2xs ${
+                className={`py-1 px-2 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
                   customerTier === 'GROSIR'
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white border-transparent shadow-xs'
-                    : 'bg-slate-100/80 border-slate-200/80 text-slate-500 hover:text-slate-800'
+                    ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <DollarSign className="w-3.5 h-3.5" />
+                <DollarSign className="w-3 h-3" />
                 <span>Langganan Grosir</span>
               </button>
             </div>
@@ -834,16 +833,16 @@ export const PosPage: React.FC = () => {
               type="button"
               disabled={cart.length === 0}
               onClick={openPaymentModal}
-              className={`w-full py-3.5 px-4 rounded-xl font-black text-sm transition-all shadow-md flex items-center justify-center gap-2 active:scale-[0.98] ${
+              className={`w-full py-2.5 px-4 rounded-md font-semibold text-xs transition-colors flex items-center justify-center gap-2 ${
                 cart.length === 0
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950/20'
+                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white shadow-xs'
               }`}
             >
-              <CreditCard className="w-4 h-4" />
+              <CreditCard className="w-4 h-4 text-emerald-400" />
               <span>Bayar Transaksi</span>
-              <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-xs font-bold">
-                [F4]
+              <span className="font-mono bg-slate-800 text-slate-300 px-1 py-0.5 rounded text-[10px] font-medium border border-slate-700">
+                F4
               </span>
             </button>
           </div>
@@ -854,36 +853,36 @@ export const PosPage: React.FC = () => {
       <Modal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        title="Pembayaran Transaksi Kasir"
-        description="Pilih metode pembayaran dan masukkan nominal uang yang diterima."
+        title="Pembayaran Transaksi"
+        description="Pilih metode pembayaran dan konfirmasi nominal pembayaran."
         size="md"
       >
         <div className="space-y-4">
           {/* Total Tagihan Banner */}
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-2xl text-center space-y-0.5 shadow-2xs">
-            <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">
-              Total yang Harus Dibayar
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-center space-y-0.5">
+            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              Total Tagihan
             </span>
-            <div className="text-3xl font-black text-emerald-900 font-mono tabular-nums">
+            <div className="text-2xl font-bold text-slate-900 font-mono tabular-nums">
               {formatRupiah(totalAmount)}
             </div>
           </div>
 
           {/* Metode Pembayaran Tabs */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
               Metode Pembayaran
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {(['CASH', 'QRIS', 'TRANSFER', 'TEMPO'] as PaymentMethod[]).map((method) => (
                 <button
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-1 text-xs font-bold rounded-xl border text-center transition-all ${
+                  className={`py-1.5 px-2 text-xs font-medium rounded-md border text-center transition-colors ${
                     paymentMethod === method
-                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-950/20'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   {method === 'TEMPO' ? 'Tempo / Bon' : method}
@@ -896,25 +895,25 @@ export const PosPage: React.FC = () => {
           {paymentMethod === 'CASH' && (
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-700 uppercase tracking-wider">
                   <span>Pilihan Cepat Uang Tunai</span>
                   <button
                     type="button"
                     onClick={() => setAmountPaid(totalAmount)}
-                    className="text-emerald-700 hover:underline normal-case font-bold"
+                    className="text-emerald-700 hover:underline normal-case font-medium"
                   >
                     Uang Pas
                   </button>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-xs font-bold">
+                <div className="grid grid-cols-3 gap-1.5 text-xs font-mono font-medium">
                   {[totalAmount, 50000, 100000, 150000, 200000, 500000].map((amt) => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => setAmountPaid(amt)}
-                      className={`p-2 rounded-xl border transition-all tabular-nums ${
+                      className={`p-2 rounded-md border transition-colors tabular-nums ${
                         amountPaid === amt
-                          ? 'bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20 font-black'
+                          ? 'bg-slate-900 text-white border-slate-900 font-bold'
                           : 'bg-white border-slate-200 text-slate-800 hover:bg-slate-50'
                       }`}
                     >
@@ -925,7 +924,7 @@ export const PosPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
                   Uang Tunai Diterima (Rp)
                 </label>
                 <input
@@ -933,16 +932,16 @@ export const PosPage: React.FC = () => {
                   value={amountPaid || ''}
                   onChange={(e) => setAmountPaid(parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5 text-xl font-mono font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+                  className="w-full bg-white border border-slate-200 rounded-md px-3 py-2 text-lg font-mono font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-slate-400"
                 />
               </div>
 
               {/* Kembalian calculation banner */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-700">Kembalian Uang:</span>
+              <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+                <span className="text-xs font-medium text-slate-600">Kembalian Uang:</span>
                 <span
-                  className={`text-lg font-black font-mono tabular-nums ${
-                    amountPaid < totalAmount ? 'text-rose-600' : 'text-emerald-700'
+                  className={`text-base font-bold font-mono tabular-nums ${
+                    amountPaid < totalAmount ? 'text-rose-600' : 'text-slate-900'
                   }`}
                 >
                   {amountPaid < totalAmount
@@ -982,12 +981,12 @@ export const PosPage: React.FC = () => {
           </div>
 
           {/* Modal Actions */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => setIsPaymentModalOpen(false)}
               disabled={checkoutMutation.isPending}
-              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+              className="px-3 py-2 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors"
             >
               Batal
             </button>
@@ -995,7 +994,7 @@ export const PosPage: React.FC = () => {
               type="button"
               disabled={paymentMethod === 'CASH' && amountPaid < totalAmount}
               onClick={() => checkoutMutation.mutate()}
-              className="px-5 py-2.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white transition shadow-md shadow-emerald-950/20 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs disabled:opacity-50 flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>Selesaikan Transaksi & Cetak Struk</span>

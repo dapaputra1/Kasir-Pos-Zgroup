@@ -29,8 +29,8 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   roles: string[];
-  badge?: string;
-  section: 'KASIR' | 'INVENTORI' | 'REKANAN' | 'SISTEM';
+  shortcut?: string;
+  section: 'OPERASIONAL' | 'INVENTORI' | 'RELASI & LAPORAN' | 'SISTEM';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
@@ -40,98 +40,98 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
     // Operasional Kasir
     {
       to: '/',
-      label: 'Ringkasan Dashboard',
+      label: 'Dashboard',
       icon: LayoutDashboard,
       roles: ['OWNER', 'ADMIN', 'CASHIER', 'WAREHOUSE'],
-      section: 'KASIR',
+      section: 'OPERASIONAL',
     },
     {
       to: '/pos',
       label: 'Mesin Kasir (POS)',
       icon: ShoppingCart,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      badge: 'F4',
-      section: 'KASIR',
+      shortcut: 'F4',
+      section: 'OPERASIONAL',
     },
     {
       to: '/sales',
-      label: 'Riwayat Transaksi',
+      label: 'Riwayat Penjualan',
       icon: History,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      section: 'KASIR',
+      section: 'OPERASIONAL',
     },
     {
       to: '/returns',
-      label: 'Retur Penjualan & Beli',
+      label: 'Retur Barang',
       icon: RotateCcw,
       roles: ['OWNER', 'ADMIN', 'CASHIER', 'WAREHOUSE'],
-      section: 'KASIR',
+      section: 'OPERASIONAL',
     },
 
     // Katalog & Inventori
     {
       to: '/products',
-      label: 'Master Produk & Satuan',
+      label: 'Katalog Produk',
       icon: Package,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE', 'CASHIER'],
       section: 'INVENTORI',
     },
     {
       to: '/categories',
-      label: 'Kategori Sembako',
+      label: 'Kategori Barang',
       icon: Layers,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
       section: 'INVENTORI',
     },
     {
       to: '/inventory',
-      label: 'Mutasi Stok & Opname',
+      label: 'Stok & Mutasi',
       icon: Boxes,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
       section: 'INVENTORI',
     },
     {
       to: '/barcode-print',
-      label: 'Cetak Barcode & Price Tag',
+      label: 'Cetak Barcode',
       icon: Barcode,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
       section: 'INVENTORI',
     },
 
-    // Rekanan & Pembukuan
+    // Relasi & Laporan
     {
       to: '/customers',
-      label: 'Pelanggan & Piutang Bon',
+      label: 'Pelanggan & Piutang',
       icon: UserCheck,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      section: 'REKANAN',
+      section: 'RELASI & LAPORAN',
     },
     {
       to: '/suppliers',
-      label: 'Supplier & Kulakan Restock',
+      label: 'Supplier & Kulakan',
       icon: Warehouse,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
-      section: 'REKANAN',
+      section: 'RELASI & LAPORAN',
     },
     {
       to: '/reports',
-      label: 'Laporan Finansial & Kas',
+      label: 'Laporan Finansial',
       icon: TrendingUp,
       roles: ['OWNER', 'ADMIN'],
-      section: 'REKANAN',
+      section: 'RELASI & LAPORAN',
     },
 
     // Pengaturan
     {
       to: '/users',
-      label: 'Manajemen Staf & Akses',
+      label: 'Kelola Staf',
       icon: Users,
       roles: ['OWNER'],
       section: 'SISTEM',
     },
     {
       to: '/settings',
-      label: 'Pengaturan Toko & Struk',
+      label: 'Pengaturan Toko',
       icon: Settings,
       roles: ['OWNER'],
       section: 'SISTEM',
@@ -141,31 +141,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   const roleInfo = user?.role ? getRoleDetails(user.role) : null;
 
   const sections: { key: NavItem['section']; label: string }[] = [
-    { key: 'KASIR', label: 'OPERASIONAL KASIR' },
-    { key: 'INVENTORI', label: 'KATALOG & GUDANG' },
-    { key: 'REKANAN', label: 'REKANAN & PEMBUKUAN' },
-    { key: 'SISTEM', label: 'SISTEM & PENGATURAN' },
+    { key: 'OPERASIONAL', label: 'Operasional Kasir' },
+    { key: 'INVENTORI', label: 'Inventori & Gudang' },
+    { key: 'RELASI & LAPORAN', label: 'Relasi & Keuangan' },
+    { key: 'SISTEM', label: 'Sistem' },
   ];
 
   return (
-    <aside className="w-64 h-full bg-[#0B1320] text-slate-200 flex flex-col border-r border-slate-800/80 select-none shadow-xl">
+    <aside className="w-60 h-full bg-[#0F172A] text-slate-300 flex flex-col border-r border-slate-800 select-none">
       {/* Brand Header */}
-      <div className="h-16 px-5 flex items-center gap-3 border-b border-slate-800/80 shrink-0 bg-gradient-to-b from-[#101B2B] to-[#0B1320]">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-950 font-black text-lg">
-          <Store className="w-5 h-5 text-white" />
-        </div>
-        <div className="min-w-0">
-          <h1 className="font-extrabold text-base tracking-tight text-white flex items-center gap-1">
-            Grosir<span className="text-emerald-400 font-black">POS</span>
-          </h1>
-          <p className="text-[10px] text-emerald-300/80 font-bold tracking-wider uppercase truncate">
-            Sistem Sembako ZGroup
-          </p>
+      <div className="h-14 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-md bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+            <Store className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="font-semibold text-sm text-white tracking-tight leading-none">
+              Grosir<span className="text-emerald-400">POS</span>
+            </div>
+            <div className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
+              Toko Sembako Grosir
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Navigation List */}
-      <div className="flex-1 py-4 px-3 overflow-y-auto space-y-4">
+      <div className="flex-1 py-3 px-2 overflow-y-auto space-y-4">
         {sections.map((sec) => {
           const itemsInSection = navItems.filter(
             (item) => item.section === sec.key && (!user || item.roles.includes(user.role))
@@ -174,10 +176,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
           if (itemsInSection.length === 0) return null;
 
           return (
-            <div key={sec.key} className="space-y-1">
-              <div className="px-3 pb-1 text-[10px] font-extrabold text-slate-400/90 uppercase tracking-widest">
+            <div key={sec.key} className="space-y-0.5">
+              <div className="px-2.5 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                 {sec.label}
               </div>
+
               {itemsInSection.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -187,19 +190,38 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
                     onClick={onItemClick}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all group min-h-[40px]',
+                        'flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors group',
                         isActive
-                          ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-950/40 font-bold'
-                          : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100'
+                          ? 'bg-slate-800 text-white font-semibold'
+                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                       )
                     }
                   >
-                    <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
-                    <span className="flex-1 truncate">{item.label}</span>
-                    {item.badge && (
-                      <span className="text-[9px] font-mono font-bold bg-slate-800 text-emerald-400 border border-slate-700 px-1.5 py-0.5 rounded shadow-2xs shrink-0">
-                        {item.badge}
-                      </span>
+                    {({ isActive }) => (
+                      <>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={cn(
+                              'w-4 h-4 shrink-0 transition-colors',
+                              isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
+                            )}
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </div>
+
+                        {item.shortcut && (
+                          <span
+                            className={cn(
+                              'font-mono text-[9px] px-1 py-0.5 rounded font-medium',
+                              isActive
+                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                : 'bg-slate-800 text-slate-400 border border-slate-700/60'
+                            )}
+                          >
+                            {item.shortcut}
+                          </span>
+                        )}
+                      </>
                     )}
                   </NavLink>
                 );
@@ -209,27 +231,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
         })}
       </div>
 
-      {/* User Info & Logout Footer */}
-      <div className="p-3 border-t border-slate-800/80 bg-[#070D16] shrink-0 space-y-2">
-        <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-900/80 border border-slate-800/70">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center font-extrabold text-xs shrink-0 shadow-xs">
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white truncate">{user?.name || 'Kasir POS'}</p>
-            <p className="text-[10px] text-emerald-400 font-semibold truncate">
+      {/* User Footer with Clean Logout */}
+      <div className="p-3 border-t border-slate-800 shrink-0 bg-[#0B1120]">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="text-xs font-medium text-white truncate leading-tight">
+              {user?.name}
+            </div>
+            <div className="text-[10px] text-slate-400 truncate mt-0.5">
               {roleInfo?.label || user?.role}
-            </p>
+            </div>
           </div>
+          <button
+            onClick={() => logout()}
+            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
+            title="Keluar dari Sistem"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-
-        <button
-          onClick={() => logout()}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-rose-400 hover:text-rose-200 hover:bg-rose-950/40 rounded-lg transition-colors border border-transparent hover:border-rose-900/40"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Keluar Akun</span>
-        </button>
       </div>
     </aside>
   );
