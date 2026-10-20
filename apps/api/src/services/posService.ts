@@ -19,10 +19,21 @@ export class PosService {
     const matchedUnit = await prisma.productUnit.findFirst({
       where: { barcode: cleanCode },
       include: {
+        priceTiers: { orderBy: { minQuantity: 'asc' } },
         product: {
           include: {
             category: true,
-            units: { orderBy: { conversionFactor: 'asc' } },
+            units: {
+              include: { priceTiers: { orderBy: { minQuantity: 'asc' } } },
+              orderBy: { conversionFactor: 'asc' },
+            },
+            bundleParents: {
+              include: {
+                componentProduct: {
+                  select: { id: true, name: true, sku: true, baseUnit: true, currentStock: true },
+                },
+              },
+            },
           },
         },
       },
@@ -44,7 +55,17 @@ export class PosService {
       },
       include: {
         category: true,
-        units: { orderBy: { conversionFactor: 'asc' } },
+        units: {
+          include: { priceTiers: { orderBy: { minQuantity: 'asc' } } },
+          orderBy: { conversionFactor: 'asc' },
+        },
+        bundleParents: {
+          include: {
+            componentProduct: {
+              select: { id: true, name: true, sku: true, baseUnit: true, currentStock: true },
+            },
+          },
+        },
       },
     });
 
@@ -92,7 +113,17 @@ export class PosService {
       take: 50,
       include: {
         category: { select: { id: true, code: true, name: true } },
-        units: { orderBy: { conversionFactor: 'asc' } },
+        units: {
+          include: { priceTiers: { orderBy: { minQuantity: 'asc' } } },
+          orderBy: { conversionFactor: 'asc' },
+        },
+        bundleParents: {
+          include: {
+            componentProduct: {
+              select: { id: true, name: true, sku: true, baseUnit: true, currentStock: true },
+            },
+          },
+        },
       },
       orderBy: { name: 'asc' },
     });
@@ -136,10 +167,21 @@ export class PosService {
       const stockMovementData: any[] = [];
 
       for (const item of input.items) {
-        // Fetch current product state
+        // Fetch current product state with units, price tiers, and bundle components
         const product = await tx.product.findUnique({
           where: { id: item.productId },
-          include: { units: true },
+          include: {
+            units: {
+              include: {
+                priceTiers: { orderBy: { minQuantity: 'desc' } },
+              },
+            },
+            bundleParents: {
+              include: {
+                componentProduct: true,
+              },
+            },
+          },
         });
 
         if (!product || !product.isActive) {
@@ -158,37 +200,107 @@ export class PosService {
         const itemQuantity = Number(item.quantity);
         const baseQuantity = itemQuantity * conversionFactor;
 
-        // Current stock in base unit
-        const currentStock = Number(product.currentStock);
-
-        // Strict stock validation
-        if (currentStock < baseQuantity) {
-          const error: any = new Error(
-            `Stok tidak mencukupi untuk "${product.name}". Stok tersedia: ${currentStock} ${product.baseUnit}, dibutuhkan: ${baseQuantity} ${product.baseUnit} (${itemQuantity} ${unitName}).`
-          );
-          error.statusCode = 400;
-          error.code = 'INSUFFICIENT_STOCK';
-          throw error;
-        }
-
-        // Calculate unit price: customPrice if provided, otherwise unit price
-        const unitPrice =
+        // Calculate unit price: customPrice if provided, otherwise check Volume Tier or standard unit price
+        let unitPrice =
           item.customPrice !== undefined && item.customPrice !== null
             ? Number(item.customPrice)
             : Number(unit?.price || 0);
 
+        // Auto Volume Tier Pricing (Diskon Bertingkat Grosir)
+        if ((item.customPrice === undefined || item.customPrice === null) && unit?.priceTiers && unit.priceTiers.length > 0) {
+          const matchingTier = unit.priceTiers.find((t) => itemQuantity >= Number(t.minQuantity));
+          if (matchingTier) {
+            unitPrice = Number(matchingTier.price);
+          }
+        }
+
         const itemSubtotal = itemQuantity * unitPrice;
         subtotal += itemSubtotal;
 
-        const newStock = currentStock - baseQuantity;
+        let costPriceSnapshot = Number(product.purchasePrice) * conversionFactor;
 
-        // Update product stock atomically
-        await tx.product.update({
-          where: { id: product.id },
-          data: {
+        // Stock deduction: Paket Bundling vs Regular Product
+        if (product.isBundle && product.bundleParents && product.bundleParents.length > 0) {
+          let calculatedBundleHpp = 0;
+
+          // Deduct stock atomically from each component product
+          for (const comp of product.bundleParents) {
+            const compProduct = comp.componentProduct;
+            const reqQty = Number(comp.quantity) * itemQuantity; // Jumlah dasar yg dibutuhkan
+            const compStock = Number(compProduct.currentStock);
+            const compHpp = Number(compProduct.purchasePrice);
+
+            calculatedBundleHpp += compHpp * Number(comp.quantity);
+
+            if (compStock < reqQty) {
+              const error: any = new Error(
+                `Stok komponen "${compProduct.name}" tidak mencukupi untuk paket "${product.name}". Stok tersedia: ${compStock} ${compProduct.baseUnit}, dibutuhkan: ${reqQty} ${compProduct.baseUnit} (${itemQuantity} paket).`
+              );
+              error.statusCode = 400;
+              error.code = 'INSUFFICIENT_STOCK';
+              throw error;
+            }
+
+            const newCompStock = compStock - reqQty;
+
+            await tx.product.update({
+              where: { id: compProduct.id },
+              data: { currentStock: newCompStock },
+            });
+
+            stockMovementData.push({
+              productId: compProduct.id,
+              type: 'OUT' as const,
+              quantity: reqQty,
+              previousStock: compStock,
+              currentStock: newCompStock,
+              referenceType: 'SALE',
+              referenceId: invoiceNumber,
+              note: `Komponen paket "${product.name}" (${itemQuantity} paket)`,
+              userId: userId,
+            });
+          }
+
+          if (costPriceSnapshot === 0 && calculatedBundleHpp > 0) {
+            costPriceSnapshot = calculatedBundleHpp * conversionFactor;
+          }
+        } else {
+          // Regular product stock deduction
+          const currentStock = Number(product.currentStock);
+
+          // Strict stock validation
+          if (currentStock < baseQuantity) {
+            const error: any = new Error(
+              `Stok tidak mencukupi untuk "${product.name}". Stok tersedia: ${currentStock} ${product.baseUnit}, dibutuhkan: ${baseQuantity} ${product.baseUnit} (${itemQuantity} ${unitName}).`
+            );
+            error.statusCode = 400;
+            error.code = 'INSUFFICIENT_STOCK';
+            throw error;
+          }
+
+          const newStock = currentStock - baseQuantity;
+
+          // Update product stock atomically
+          await tx.product.update({
+            where: { id: product.id },
+            data: {
+              currentStock: newStock,
+            },
+          });
+
+          // Prepare audit trail stock movement
+          stockMovementData.push({
+            productId: product.id,
+            type: 'OUT' as const,
+            quantity: baseQuantity,
+            previousStock: currentStock,
             currentStock: newStock,
-          },
-        });
+            referenceType: 'SALE',
+            referenceId: invoiceNumber,
+            note: `Penjualan Kasir (${itemQuantity} ${unitName})`,
+            userId: userId,
+          });
+        }
 
         // Prepare order item snapshot
         orderItemsData.push({
@@ -200,29 +312,79 @@ export class PosService {
           conversionFactor: conversionFactor,
           quantity: itemQuantity,
           baseQuantity: baseQuantity,
-          costPrice: Number(product.purchasePrice) * conversionFactor, // HPP snapshot
+          costPrice: costPriceSnapshot,
           unitPrice: unitPrice,
           subtotal: itemSubtotal,
           discountAmount: 0,
           totalAmount: itemSubtotal,
         });
+      }
 
-        // Prepare audit trail stock movement
-        stockMovementData.push({
-          productId: product.id,
-          type: 'OUT' as const,
-          quantity: baseQuantity,
-          previousStock: currentStock,
-          currentStock: newStock,
-          referenceType: 'SALE',
-          referenceId: invoiceNumber,
-          note: `Penjualan Kasir (${itemQuantity} ${unitName})`,
-          userId: userId,
+      // 3. Coupon Promotion atomic application & discount calculation
+      let discount = Number(input.discountAmount) || 0;
+      let appliedPromoCode: string | null = null;
+
+      if (input.promoCode && input.promoCode.trim()) {
+        const cleanCode = input.promoCode.trim().toUpperCase();
+        const promo = await tx.promotion.findUnique({
+          where: { code: cleanCode },
+        });
+
+        if (!promo || !promo.isActive) {
+          const error: any = new Error(`Kupon promo "${cleanCode}" tidak valid atau tidak aktif.`);
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const now = new Date();
+        if (promo.startDate && now < promo.startDate) {
+          const error: any = new Error(`Promo "${promo.name}" belum mulai berlaku.`);
+          error.statusCode = 400;
+          throw error;
+        }
+        if (promo.endDate && now > promo.endDate) {
+          const error: any = new Error(`Promo "${promo.name}" telah kedaluwarsa.`);
+          error.statusCode = 400;
+          throw error;
+        }
+        if (promo.quota !== null && promo.quota !== undefined && promo.usedCount >= promo.quota) {
+          const error: any = new Error(`Batas kuota promo "${cleanCode}" sudah habis.`);
+          error.statusCode = 400;
+          throw error;
+        }
+
+        const minSpend = Number(promo.minPurchase || 0);
+        if (subtotal < minSpend) {
+          const error: any = new Error(
+            `Total belanja minimal Rp ${minSpend.toLocaleString('id-ID')} untuk menggunakan kupon "${cleanCode}".`
+          );
+          error.statusCode = 400;
+          throw error;
+        }
+
+        let promoDiscount = 0;
+        const promoVal = Number(promo.value);
+
+        if (promo.type === 'PERCENTAGE') {
+          promoDiscount = (subtotal * promoVal) / 100;
+          if (promo.maxDiscount) {
+            promoDiscount = Math.min(promoDiscount, Number(promo.maxDiscount));
+          }
+        } else {
+          promoDiscount = Math.min(promoVal, subtotal);
+        }
+
+        promoDiscount = Math.round(promoDiscount);
+        discount = Math.max(discount, promoDiscount);
+        appliedPromoCode = promo.code;
+
+        // Atomically increment promo usage counter
+        await tx.promotion.update({
+          where: { id: promo.id },
+          data: { usedCount: { increment: 1 } },
         });
       }
 
-      // 3. Calculate final amounts
-      const discount = Number(input.discountAmount) || 0;
       const tax = Number(input.taxAmount) || 0;
       const totalAmount = Math.max(0, subtotal - discount + tax);
       let amountPaid = Number(input.amountPaid);
@@ -308,6 +470,7 @@ export class PosService {
           cashShiftId: activeShift ? activeShift.id : null,
           subtotal,
           discountAmount: discount,
+          promoCode: appliedPromoCode,
           taxAmount: tax,
           totalAmount,
           paymentMethod: input.paymentMethod,

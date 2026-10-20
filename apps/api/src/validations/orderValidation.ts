@@ -15,6 +15,7 @@ export const checkoutSchema = z.object({
   amountPaid: z.coerce.number().min(0, 'Nominal pembayaran tidak boleh negatif'),
   discountAmount: z.coerce.number().min(0, 'Diskon tidak boleh negatif').default(0),
   taxAmount: z.coerce.number().min(0, 'Pajak tidak boleh negatif').default(0),
+  promoCode: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   items: z.array(orderItemInputSchema).min(1, 'Keranjang belanja tidak boleh kosong'),
 });

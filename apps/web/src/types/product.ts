@@ -1,4 +1,5 @@
 import { Category } from './category';
+import { PriceTier } from './promotion';
 
 export interface ProductUnit {
   id?: number;
@@ -9,6 +10,7 @@ export interface ProductUnit {
   price: number;
   wholesalePrice?: number | null;
   barcode?: string | null;
+  priceTiers?: PriceTier[];
 }
 
 export type MovementType = 'IN' | 'OUT' | 'ADJUSTMENT' | 'RETURN';
@@ -49,6 +51,8 @@ export interface Product {
   currentStock: number | string;
   minStock: number | string;
   purchasePrice: number | string;
+  isBundle?: boolean;
+  bundleParents?: any[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -18,6 +18,8 @@ import reportRoutes from './routes/reportRoutes';
 import shiftRoutes from './routes/shiftRoutes';
 import returnRoutes from './routes/returnRoutes';
 import settingRoutes from './routes/settingRoutes';
+import promotionRoutes from './routes/promotionRoutes';
+import bundleRoutes from './routes/bundleRoutes';
 
 const app = express();
 
@@ -64,6 +66,8 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/returns', returnRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/promotions', promotionRoutes);
+app.use('/api/bundles', bundleRoutes);
 
 // Centralized Error Handler
 app.use(errorHandler);

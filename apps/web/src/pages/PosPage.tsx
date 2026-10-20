@@ -18,6 +18,8 @@ import {
   Clock,
   Wallet,
   PauseCircle,
+  Gift,
+  Tag,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
@@ -59,6 +61,13 @@ export const PosPage: React.FC = () => {
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [orderNotes, setOrderNotes] = useState('');
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [couponCodeInput, setCouponCodeInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    name: string;
+    discountAmount: number;
+  } | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
   // 4. State for Shift & Hold Cart
   const [isStartShiftModalOpen, setIsStartShiftModalOpen] = useState(false);
@@ -177,6 +186,26 @@ export const PosPage: React.FC = () => {
     }
   };
 
+  // Helper to compute unit price with Volume Tier (Diskon Bertingkat Grosir)
+  const computeUnitPrice = (unit: ProductUnit, quantity: number, tier: 'REGULAR' | 'GROSIR') => {
+    // 1. Check if Volume Tier applies
+    if (unit.priceTiers && unit.priceTiers.length > 0) {
+      const matchingTier = [...unit.priceTiers]
+        .sort((a, b) => Number(b.minQuantity) - Number(a.minQuantity))
+        .find((t) => quantity >= Number(t.minQuantity));
+      if (matchingTier) {
+        return Number(matchingTier.price);
+      }
+    }
+
+    // 2. Customer tier wholesale price fallback
+    if (tier === 'GROSIR' && unit.wholesalePrice && Number(unit.wholesalePrice) > 0) {
+      return Number(unit.wholesalePrice);
+    }
+
+    return Number(unit.price);
+  };
+
   // Add Item to Cart
   const addItemToCart = (product: Product, unit: ProductUnit, quantity: number = 1) => {
     setCart((prev) => {
@@ -184,22 +213,20 @@ export const PosPage: React.FC = () => {
         (item) => item.productId === product.id && item.selectedUnit.id === unit.id
       );
 
-      const unitPrice =
-        customerTier === 'GROSIR' && unit.wholesalePrice && Number(unit.wholesalePrice) > 0
-          ? Number(unit.wholesalePrice)
-          : Number(unit.price);
-
       if (existingIndex > -1) {
         const next = [...prev];
         const newQty = next[existingIndex].quantity + quantity;
+        const unitPrice = computeUnitPrice(unit, newQty, customerTier);
         next[existingIndex] = {
           ...next[existingIndex],
           quantity: newQty,
-          subtotal: newQty * next[existingIndex].unitPrice,
+          unitPrice,
+          subtotal: newQty * unitPrice,
         };
         return next;
       }
 
+      const unitPrice = computeUnitPrice(unit, quantity, customerTier);
       const newItem: CartItem = {
         productId: product.id,
         productName: product.name,
@@ -234,10 +261,7 @@ export const PosPage: React.FC = () => {
       const newUnit = item.availableUnits.find((u) => u.id === newUnitId);
       if (!newUnit) return prev;
 
-      const unitPrice =
-        customerTier === 'GROSIR' && newUnit.wholesalePrice && Number(newUnit.wholesalePrice) > 0
-          ? Number(newUnit.wholesalePrice)
-          : Number(newUnit.price);
+      const unitPrice = computeUnitPrice(newUnit, item.quantity, customerTier);
 
       next[index] = {
         ...item,
@@ -257,10 +281,13 @@ export const PosPage: React.FC = () => {
     }
     setCart((prev) => {
       const next = [...prev];
+      const item = next[index];
+      const unitPrice = computeUnitPrice(item.selectedUnit, newQty, customerTier);
       next[index] = {
         ...next[index],
         quantity: newQty,
-        subtotal: newQty * next[index].unitPrice,
+        unitPrice,
+        subtotal: newQty * unitPrice,
       };
       return next;
     });
@@ -276,11 +303,7 @@ export const PosPage: React.FC = () => {
     setCustomerTier(tier);
     setCart((prev) =>
       prev.map((item) => {
-        const unit = item.selectedUnit;
-        const unitPrice =
-          tier === 'GROSIR' && unit.wholesalePrice && Number(unit.wholesalePrice) > 0
-            ? Number(unit.wholesalePrice)
-            : Number(unit.price);
+        const unitPrice = computeUnitPrice(item.selectedUnit, item.quantity, tier);
         return {
           ...item,
           unitPrice,
@@ -294,6 +317,40 @@ export const PosPage: React.FC = () => {
   const subtotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
   const totalAmount = Math.max(0, subtotal - discountAmount);
   const changeAmount = paymentMethod === 'CASH' ? Math.max(0, amountPaid - totalAmount) : 0;
+
+  // Coupon promo application handler
+  const handleApplyCoupon = async (codeToApply?: string) => {
+    const code = (codeToApply || couponCodeInput).trim().toUpperCase();
+    if (!code) return;
+
+    try {
+      setIsCheckingCoupon(true);
+      const res = await api.post('/promotions/validate', {
+        code,
+        subtotal,
+      });
+      const promoData = res.data.data;
+      setAppliedCoupon({
+        code: promoData.promoCode,
+        name: promoData.name,
+        discountAmount: promoData.discountAmount,
+      });
+      setDiscountAmount(promoData.discountAmount);
+      sound.playScanSuccess();
+      success(`Kupon "${promoData.promoCode}" berhasil diterapkan! Potongan: ${formatRupiah(promoData.discountAmount)}`);
+    } catch (err: any) {
+      sound.playScanError();
+      toastError(err.response?.data?.error?.message || err.message || 'Kupon tidak valid.');
+    } finally {
+      setIsCheckingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCodeInput('');
+  };
 
   // Open Payment Modal
   const openPaymentModal = () => {
@@ -323,6 +380,7 @@ export const PosPage: React.FC = () => {
         paymentMethod,
         amountPaid: paymentMethod === 'CASH' ? amountPaid : totalAmount,
         discountAmount,
+        promoCode: appliedCoupon ? appliedCoupon.code : undefined,
         notes: orderNotes,
         items: cart.map((item) => ({
           productId: item.productId,
@@ -346,6 +404,8 @@ export const PosPage: React.FC = () => {
       setIsPaymentModalOpen(false);
       setCart([]);
       setDiscountAmount(0);
+      setAppliedCoupon(null);
+      setCouponCodeInput('');
       setOrderNotes('');
     },
     onError: (err: any) => {
@@ -619,6 +679,22 @@ export const PosPage: React.FC = () => {
                         <h4 className="font-bold text-xs text-ink line-clamp-2 leading-tight">
                           {prod.name}
                         </h4>
+
+                        {/* Bundling & Tier Badges */}
+                        <div className="flex flex-wrap items-center gap-1 mt-1">
+                          {prod.isBundle && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              <Gift className="w-2.5 h-2.5 text-emerald-600" />
+                              Paket
+                            </span>
+                          )}
+                          {baseUnit?.priceTiers && baseUnit.priceTiers.length > 0 && (
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                              <Tag className="w-2.5 h-2.5 text-amber-600" />
+                              Tier Grosir
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="mt-2 pt-1 border-t border-surface-border/60 flex items-center justify-between">
@@ -802,6 +878,11 @@ export const PosPage: React.FC = () => {
                         <div className="text-[10px] text-ink-muted font-mono tabular-nums">
                           @{formatRupiah(item.unitPrice)}
                         </div>
+                        {item.selectedUnit.priceTiers && item.selectedUnit.priceTiers.some((t) => item.quantity >= Number(t.minQuantity)) && (
+                          <span className="inline-block mt-0.5 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                            Tier Grosir Aktif
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -956,6 +1037,60 @@ export const PosPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Voucher / Kupon Promosi */}
+          <div className="p-3 rounded-lg border border-brand-200 bg-brand-50/50 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-brand-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-brand-600" />
+                Voucher / Kupon Promosi
+              </span>
+              {appliedCoupon && (
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                  Kupon Aktif
+                </span>
+              )}
+            </div>
+
+            {appliedCoupon ? (
+              <div className="flex items-center justify-between p-2 rounded bg-white border border-brand-200 text-xs">
+                <div>
+                  <span className="font-mono font-bold text-brand-700">{appliedCoupon.code}</span>
+                  <span className="text-ink-muted ml-2 text-[11px]">({appliedCoupon.name})</span>
+                  <div className="text-[11px] font-semibold text-emerald-700">
+                    Potongan: {formatRupiah(appliedCoupon.discountAmount)}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveCoupon}
+                  className="text-ink-subtle hover:text-rose-600 text-xs font-semibold px-2 py-1 rounded"
+                >
+                  Hapus
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="KODE VOUCHER (MISAL: SEMBAKOMURAH)"
+                  value={couponCodeInput}
+                  onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
+                  className="flex-1 bg-white border border-surface-border rounded px-2.5 py-1.5 text-xs font-mono uppercase font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleApplyCoupon()}
+                  disabled={isCheckingCoupon || !couponCodeInput.trim()}
+                  className="h-8 text-xs shrink-0 text-brand-700 border-brand-300 hover:bg-brand-50"
+                >
+                  {isCheckingCoupon ? 'Cek...' : 'Terapkan'}
+                </Button>
+              </div>
+            )}
+          </div>
 
           {/* Diskon / Catatan Tambahan */}
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-surface-border">

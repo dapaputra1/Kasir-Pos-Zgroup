@@ -16,6 +16,7 @@ import {
   RotateCcw,
   Barcode,
   Settings,
+  Tag,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { cn, getRoleDetails } from '../../lib/utils';
@@ -84,6 +85,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
       label: 'Cetak Barcode & Rak',
       icon: Barcode,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
+    },
+    {
+      to: '/promotions',
+      label: 'Promosi & Bundling',
+      icon: Tag,
+      roles: ['OWNER', 'ADMIN', 'CASHIER'],
     },
     {
       to: '/inventory',

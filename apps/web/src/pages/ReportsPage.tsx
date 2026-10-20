@@ -13,6 +13,7 @@ import {
   Wallet,
   FileSpreadsheet,
   AlertCircle,
+  FileText,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -21,6 +22,7 @@ import { Badge } from '../components/ui/Badge';
 import { api } from '../lib/api';
 import { formatRupiah, formatNumber } from '../lib/utils';
 import { ProfitLossData, TopProduct, CashflowData } from '../types/report';
+import { PdfReportGenerator } from '../lib/pdfReportGenerator';
 
 export const ReportsPage: React.FC = () => {
   // Preset or custom dates
@@ -136,6 +138,48 @@ export const ReportsPage: React.FC = () => {
     }
   };
 
+  const handleExportPdf = async (type: 'pl' | 'sales' | 'purchases' | 'inventory') => {
+    try {
+      setDownloadingExport(`pdf-${type}`);
+      const pdfOpts = {
+        storeName: 'GROSIR SEMBAKO ZGROUP',
+        storeAddress: 'Sistem Kasir & Operasional Toko Grosir Sembako',
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+      };
+
+      if (type === 'pl') {
+        PdfReportGenerator.exportProfitLossPdf(plData, cashflowData, topProducts, pdfOpts);
+      } else if (type === 'sales') {
+        const params = new URLSearchParams();
+        params.append('limit', '500');
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        params.append('status', 'COMPLETED');
+        const res = await api.get(`/pos/orders?${params.toString()}`);
+        const orders = res.data?.data?.orders || [];
+        PdfReportGenerator.exportSalesListPdf(orders, pdfOpts);
+      } else if (type === 'purchases') {
+        const params = new URLSearchParams();
+        params.append('limit', '500');
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        params.append('status', 'RECEIVED');
+        const res = await api.get(`/purchases?${params.toString()}`);
+        const purchases = res.data?.data?.purchases || [];
+        PdfReportGenerator.exportPurchasesListPdf(purchases, pdfOpts);
+      } else if (type === 'inventory') {
+        const res = await api.get('/products?limit=500');
+        const products = res.data?.data?.products || [];
+        PdfReportGenerator.exportInventoryValuationPdf(products, pdfOpts);
+      }
+    } catch (err) {
+      console.error('Gagal export PDF:', err);
+    } finally {
+      setDownloadingExport(null);
+    }
+  };
+
   const isLoading = isLoadingPl || isLoadingTop || isLoadingCashflow;
 
   return (
@@ -148,7 +192,7 @@ export const ReportsPage: React.FC = () => {
             Laporan Finansial & Bisnis
           </h1>
           <p className="text-sm text-ink-muted mt-1">
-            Analisis laba rugi, HPP grosir, arus kas kasir, serta ekspor pembukuan format CSV.
+            Analisis laba rugi, HPP grosir, arus kas kasir, serta ekspor pembukuan format PDF & CSV.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -161,6 +205,16 @@ export const ReportsPage: React.FC = () => {
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             Segarkan
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleExportPdf('pl')}
+            disabled={isLoading || downloadingExport === 'pdf-pl'}
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-medium shadow-xs"
+          >
+            <FileText className="w-4 h-4" />
+            {downloadingExport === 'pdf-pl' ? 'Menyiapkan PDF...' : 'Ekspor Laba Rugi PDF'}
           </Button>
         </div>
       </div>
@@ -384,80 +438,139 @@ export const ReportsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* CSV Export Center */}
+        {/* Export Center (PDF & CSV) */}
         <div>
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileSpreadsheet className="w-5 h-5 text-ink-muted" />
-                Ekspor Pembukuan CSV
+                Pusat Ekspor Pembukuan (PDF & CSV)
               </CardTitle>
               <p className="text-xs text-ink-muted mt-1">
-                Unduh file spreadsheet untuk laporan akuntansi toko.
+                Unduh berkas cetak resmi PDF dan spreadsheet CSV untuk pembukuan akuntansi.
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
+              {/* Laba Rugi PDF */}
               <div className="p-3 border border-surface-border rounded-lg bg-surface-muted/30">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-semibold text-ink">Ringkasan Laba Rugi & Arus Kas</div>
+                    <div className="text-[11px] text-ink-muted">Format resmi A4 dengan kop & lembar tanda tangan</div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExportPdf('pl')}
+                    disabled={downloadingExport === 'pdf-pl' || isLoading}
+                    className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50 shrink-0"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    {downloadingExport === 'pdf-pl' ? 'Membuat PDF...' : 'Unduh PDF'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Sales */}
+              <div className="p-3 border border-surface-border rounded-lg bg-surface-muted/30">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <div className="text-xs font-semibold text-ink">Data Penjualan (Sales)</div>
                     <div className="text-[11px] text-ink-muted">Faktur POS, kasir, dan pembayaran</div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleExportCsv('sales')}
-                    disabled={downloadingExport === 'sales'}
-                    className="flex items-center gap-1.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50"
-                  >
-                    <Download className={`w-3.5 h-3.5 ${downloadingExport === 'sales' ? 'animate-bounce' : ''}`} />
-                    Unduh CSV
-                  </Button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportPdf('sales')}
+                      disabled={downloadingExport === 'pdf-sales'}
+                      className="flex items-center gap-1.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportCsv('sales')}
+                      disabled={downloadingExport === 'sales'}
+                      className="flex items-center gap-1.5 text-xs text-ink-muted border-surface-border hover:bg-surface-muted"
+                    >
+                      <Download className={`w-3.5 h-3.5 ${downloadingExport === 'sales' ? 'animate-bounce' : ''}`} />
+                      CSV
+                    </Button>
+                  </div>
                 </div>
               </div>
 
+              {/* Purchases */}
               <div className="p-3 border border-surface-border rounded-lg bg-surface-muted/30">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <div className="text-xs font-semibold text-ink">Data Pembelian (Purchases)</div>
                     <div className="text-[11px] text-ink-muted">PO supplier & stok masuk</div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleExportCsv('purchases')}
-                    disabled={downloadingExport === 'purchases'}
-                    className="flex items-center gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
-                  >
-                    <Download className={`w-3.5 h-3.5 ${downloadingExport === 'purchases' ? 'animate-bounce' : ''}`} />
-                    Unduh CSV
-                  </Button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportPdf('purchases')}
+                      disabled={downloadingExport === 'pdf-purchases'}
+                      className="flex items-center gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportCsv('purchases')}
+                      disabled={downloadingExport === 'purchases'}
+                      className="flex items-center gap-1.5 text-xs text-ink-muted border-surface-border hover:bg-surface-muted"
+                    >
+                      <Download className={`w-3.5 h-3.5 ${downloadingExport === 'purchases' ? 'animate-bounce' : ''}`} />
+                      CSV
+                    </Button>
+                  </div>
                 </div>
               </div>
 
+              {/* Inventory */}
               <div className="p-3 border border-surface-border rounded-lg bg-surface-muted/30">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
                     <div className="text-xs font-semibold text-ink">Data Inventaris (Inventory)</div>
                     <div className="text-[11px] text-ink-muted">Stok real-time & valuasi aset barang</div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleExportCsv('inventory')}
-                    disabled={downloadingExport === 'inventory'}
-                    className="flex items-center gap-1.5 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
-                  >
-                    <Download className={`w-3.5 h-3.5 ${downloadingExport === 'inventory' ? 'animate-bounce' : ''}`} />
-                    Unduh CSV
-                  </Button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportPdf('inventory')}
+                      disabled={downloadingExport === 'pdf-inventory'}
+                      className="flex items-center gap-1.5 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleExportCsv('inventory')}
+                      disabled={downloadingExport === 'inventory'}
+                      className="flex items-center gap-1.5 text-xs text-ink-muted border-surface-border hover:bg-surface-muted"
+                    >
+                      <Download className={`w-3.5 h-3.5 ${downloadingExport === 'inventory' ? 'animate-bounce' : ''}`} />
+                      CSV
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200/60 flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-800 leading-relaxed">
-                  Data CSV dapat dibuka langsung di Microsoft Excel, Google Sheets, atau aplikasi akuntansi Accurate/Zahir.
+              <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-emerald-900 leading-relaxed">
+                  Laporan format PDF dilengkapi kop toko, ringkasan per baris, dan blok tanda tangan validasi kasir & pemilik toko.
                 </p>
               </div>
             </CardContent>

@@ -16,6 +16,7 @@ import { SuppliersPage } from '../pages/SuppliersPage';
 import { ReturnsPage } from '../pages/ReturnsPage';
 import { BarcodePrintPage } from '../pages/BarcodePrintPage';
 import { SettingsPage } from '../pages/SettingsPage';
+import { PromotionsPage } from '../pages/PromotionsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 
 export const AppRoutes: React.FC = () => {
@@ -44,6 +45,14 @@ export const AppRoutes: React.FC = () => {
         <Route path="suppliers" element={<SuppliersPage />} />
         <Route path="returns" element={<ReturnsPage />} />
         <Route path="barcode-print" element={<BarcodePrintPage />} />
+        <Route
+          path="promotions"
+          element={
+            <ProtectedRoute allowedRoles={['OWNER', 'ADMIN', 'CASHIER']}>
+              <PromotionsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="reports"
           element={
