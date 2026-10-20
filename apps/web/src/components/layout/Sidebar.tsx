@@ -29,227 +29,170 @@ interface NavItem {
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   roles: string[];
-  shortcut?: string;
-  section: 'OPERASIONAL' | 'INVENTORI' | 'RELASI & LAPORAN' | 'SISTEM';
+  badge?: string;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ onItemClick }) => {
   const { user, logout } = useAuthStore();
 
   const navItems: NavItem[] = [
-    // Operasional Kasir
     {
       to: '/',
       label: 'Dashboard',
       icon: LayoutDashboard,
       roles: ['OWNER', 'ADMIN', 'CASHIER', 'WAREHOUSE'],
-      section: 'OPERASIONAL',
     },
     {
       to: '/pos',
-      label: 'Mesin Kasir (POS)',
+      label: 'Kasir POS',
       icon: ShoppingCart,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      shortcut: 'F4',
-      section: 'OPERASIONAL',
+      badge: 'F4',
     },
     {
       to: '/sales',
-      label: 'Riwayat Penjualan',
+      label: 'Riwayat Transaksi',
       icon: History,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      section: 'OPERASIONAL',
     },
     {
       to: '/returns',
       label: 'Retur Barang',
       icon: RotateCcw,
       roles: ['OWNER', 'ADMIN', 'CASHIER', 'WAREHOUSE'],
-      section: 'OPERASIONAL',
     },
-
-    // Katalog & Inventori
-    {
-      to: '/products',
-      label: 'Katalog Produk',
-      icon: Package,
-      roles: ['OWNER', 'ADMIN', 'WAREHOUSE', 'CASHIER'],
-      section: 'INVENTORI',
-    },
-    {
-      to: '/categories',
-      label: 'Kategori Barang',
-      icon: Layers,
-      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
-      section: 'INVENTORI',
-    },
-    {
-      to: '/inventory',
-      label: 'Stok & Mutasi',
-      icon: Boxes,
-      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
-      section: 'INVENTORI',
-    },
-    {
-      to: '/barcode-print',
-      label: 'Cetak Barcode',
-      icon: Barcode,
-      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
-      section: 'INVENTORI',
-    },
-
-    // Relasi & Laporan
     {
       to: '/customers',
       label: 'Pelanggan & Piutang',
       icon: UserCheck,
       roles: ['OWNER', 'ADMIN', 'CASHIER'],
-      section: 'RELASI & LAPORAN',
+    },
+    {
+      to: '/products',
+      label: 'Manajemen Produk',
+      icon: Package,
+      roles: ['OWNER', 'ADMIN', 'WAREHOUSE', 'CASHIER'],
+    },
+    {
+      to: '/categories',
+      label: 'Kategori Produk',
+      icon: Layers,
+      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
+    },
+    {
+      to: '/barcode-print',
+      label: 'Cetak Barcode & Rak',
+      icon: Barcode,
+      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
+    },
+    {
+      to: '/inventory',
+      label: 'Mutasi Stok & Opname',
+      icon: Boxes,
+      roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
     },
     {
       to: '/suppliers',
       label: 'Supplier & Kulakan',
       icon: Warehouse,
       roles: ['OWNER', 'ADMIN', 'WAREHOUSE'],
-      section: 'RELASI & LAPORAN',
     },
     {
       to: '/reports',
       label: 'Laporan Finansial',
       icon: TrendingUp,
       roles: ['OWNER', 'ADMIN'],
-      section: 'RELASI & LAPORAN',
     },
-
-    // Pengaturan
     {
       to: '/users',
-      label: 'Kelola Staf',
+      label: 'Kelola Pengguna',
       icon: Users,
       roles: ['OWNER'],
-      section: 'SISTEM',
     },
     {
       to: '/settings',
       label: 'Pengaturan Toko',
       icon: Settings,
       roles: ['OWNER'],
-      section: 'SISTEM',
     },
   ];
 
   const roleInfo = user?.role ? getRoleDetails(user.role) : null;
 
-  const sections: { key: NavItem['section']; label: string }[] = [
-    { key: 'OPERASIONAL', label: 'Operasional Kasir' },
-    { key: 'INVENTORI', label: 'Inventori & Gudang' },
-    { key: 'RELASI & LAPORAN', label: 'Relasi & Keuangan' },
-    { key: 'SISTEM', label: 'Sistem' },
-  ];
-
   return (
-    <aside className="w-60 h-full bg-[#0F172A] text-slate-300 flex flex-col border-r border-slate-800 select-none">
+    <aside className="w-64 h-full bg-[#111A24] text-white flex flex-col border-r border-[#1C2836] select-none">
       {/* Brand Header */}
-      <div className="h-14 px-4 flex items-center justify-between border-b border-slate-800 shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
-            <Store className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="font-semibold text-sm text-white tracking-tight leading-none">
-              Grosir<span className="text-emerald-400">POS</span>
-            </div>
-            <div className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
-              Toko Sembako Grosir
-            </div>
-          </div>
+      <div className="h-16 px-5 flex items-center gap-3 border-b border-[#1C2836] shrink-0">
+        <div className="w-9 h-9 rounded-lg bg-brand-500 flex items-center justify-center text-white shadow-sm font-black text-lg">
+          <Store className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <h1 className="font-bold text-base tracking-tight text-white flex items-center gap-1.5">
+            Grosir<span className="text-brand-400">POS</span>
+          </h1>
+          <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">
+            Sembako Wholesale
+          </p>
         </div>
       </div>
 
       {/* Navigation List */}
-      <div className="flex-1 py-3 px-2 overflow-y-auto space-y-4">
-        {sections.map((sec) => {
-          const itemsInSection = navItems.filter(
-            (item) => item.section === sec.key && (!user || item.roles.includes(user.role))
-          );
+      <div className="flex-1 py-4 px-3 overflow-y-auto space-y-1">
+        <div className="px-3 pb-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          Menu Utama
+        </div>
 
-          if (itemsInSection.length === 0) return null;
-
-          return (
-            <div key={sec.key} className="space-y-0.5">
-              <div className="px-2.5 pb-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                {sec.label}
-              </div>
-
-              {itemsInSection.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={onItemClick}
-                    className={({ isActive }) =>
-                      cn(
-                        'flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors group',
-                        isActive
-                          ? 'bg-slate-800 text-white font-semibold'
-                          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Icon
-                            className={cn(
-                              'w-4 h-4 shrink-0 transition-colors',
-                              isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-200'
-                            )}
-                          />
-                          <span className="truncate">{item.label}</span>
-                        </div>
-
-                        {item.shortcut && (
-                          <span
-                            className={cn(
-                              'font-mono text-[9px] px-1 py-0.5 rounded font-medium',
-                              isActive
-                                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                                : 'bg-slate-800 text-slate-400 border border-slate-700/60'
-                            )}
-                          >
-                            {item.shortcut}
-                          </span>
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                );
-              })}
-            </div>
-          );
-        })}
+        {navItems
+          .filter((item) => !user || item.roles.includes(user.role))
+          .map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onItemClick}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all group min-h-[42px]',
+                    isActive
+                      ? 'bg-brand-500 text-white shadow-xs font-semibold'
+                      : 'text-gray-300 hover:bg-[#1A2634] hover:text-white'
+                  )
+                }
+              >
+                <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-105" />
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.badge && (
+                  <span className="text-[10px] bg-[#223142] text-gray-300 px-1.5 py-0.5 rounded font-normal shrink-0">
+                    {item.badge}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
       </div>
 
-      {/* User Footer with Clean Logout */}
-      <div className="p-3 border-t border-slate-800 shrink-0 bg-[#0B1120]">
-        <div className="flex items-center justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-xs font-medium text-white truncate leading-tight">
-              {user?.name}
-            </div>
-            <div className="text-[10px] text-slate-400 truncate mt-0.5">
-              {roleInfo?.label || user?.role}
-            </div>
+      {/* User Info & Logout Footer */}
+      <div className="p-3 border-t border-[#1C2836] bg-[#0E151E] shrink-0 space-y-2">
+        <div className="flex items-center gap-3 p-2 rounded-md bg-[#16202C]">
+          <div className="w-9 h-9 rounded-full bg-brand-700 text-brand-100 flex items-center justify-center font-bold text-sm shrink-0 border border-brand-500/30">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
           </div>
-          <button
-            onClick={() => logout()}
-            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors"
-            title="Keluar dari Sistem"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-white truncate">{user?.name || 'Kasir POS'}</p>
+            <p className="text-[11px] text-brand-300 font-medium truncate">
+              {roleInfo?.label || user?.role}
+            </p>
+          </div>
         </div>
+
+        <button
+          onClick={() => logout()}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-rose-300 hover:text-rose-100 hover:bg-rose-950/40 rounded-md transition-colors min-h-[38px]"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Keluar (Logout)</span>
+        </button>
       </div>
     </aside>
   );
