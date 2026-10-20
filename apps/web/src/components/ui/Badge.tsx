@@ -1,0 +1,35 @@
+import React from 'react';
+import { cn } from '../../lib/utils';
+
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'outline';
+}
+
+export const Badge: React.FC<BadgeProps> = ({
+  className,
+  variant = 'default',
+  children,
+  ...props
+}) => {
+  const variants = {
+    default: 'bg-surface-subtle text-ink-muted border-surface-border',
+    success: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    warning: 'bg-amber-50 text-amber-800 border-amber-200',
+    danger: 'bg-rose-50 text-rose-800 border-rose-200',
+    info: 'bg-blue-50 text-blue-800 border-blue-200',
+    outline: 'bg-transparent text-ink border-surface-border',
+  };
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border tracking-wide whitespace-nowrap',
+        variants[variant],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+};
