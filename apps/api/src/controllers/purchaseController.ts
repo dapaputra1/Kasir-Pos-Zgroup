@@ -1,9 +1,38 @@
 import { Request, Response, NextFunction } from 'express';
 import { PurchaseService } from '../services/purchaseService';
+import { AiReceiptService } from '../services/aiReceiptService';
 import { sendSuccess } from '../utils/response';
 import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 export class PurchaseController {
+  static async scanReceipt(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { images, imageBase64, mimeType, geminiApiKey } = req.body;
+      const inputImages = images || imageBase64;
+      if (!inputImages || (Array.isArray(inputImages) && inputImages.length === 0)) {
+        const error: any = new Error('Foto nota tidak ditemukan. Pastikan Anda mengunggah atau memotret setidaknya satu lembar nota.');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      const result = await AiReceiptService.scanReceipt(inputImages, mimeType || 'image/jpeg', geminiApiKey);
+      const pageCount = Array.isArray(inputImages) ? inputImages.length : 1;
+      return sendSuccess(res, result, `Nota (${pageCount} lembar) berhasil dianalisis dengan AI.`);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async smartImport(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user!.userId;
+      const purchase = await PurchaseService.smartImport(req.body, userId);
+      return sendSuccess(res, purchase, 'Faktur nota pembelian & stok barang berhasil diimpor.', 201);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user!.userId;

@@ -9,6 +9,10 @@ const router = Router();
 // Summary metrics
 router.get('/summary', authenticate, requireRole(['OWNER', 'ADMIN', 'WAREHOUSE']), PurchaseController.getSummary);
 
+// AI Smart Scan & Import Nota
+router.post('/scan-receipt', authenticate, requireRole(['OWNER', 'ADMIN', 'WAREHOUSE']), PurchaseController.scanReceipt);
+router.post('/smart-import', authenticate, requireRole(['OWNER', 'ADMIN', 'WAREHOUSE']), PurchaseController.smartImport);
+
 // List & Detail
 router.get('/', authenticate, requireRole(['OWNER', 'ADMIN', 'WAREHOUSE']), PurchaseController.list);
 router.get('/:id', authenticate, requireRole(['OWNER', 'ADMIN', 'WAREHOUSE']), PurchaseController.getById);

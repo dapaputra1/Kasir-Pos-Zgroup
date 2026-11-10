@@ -12,6 +12,8 @@ import {
   Edit2,
   Trash2,
   CheckCircle2,
+  Sparkles,
+  Camera,
 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -25,6 +27,7 @@ import { SupplierFormModal } from '../components/suppliers/SupplierFormModal';
 import { PurchaseFormModal } from '../components/suppliers/PurchaseFormModal';
 import { PurchaseDetailModal } from '../components/suppliers/PurchaseDetailModal';
 import { DebtPaymentModal } from '../components/suppliers/DebtPaymentModal';
+import { AiScanReceiptModal } from '../components/suppliers/AiScanReceiptModal';
 
 export const SuppliersPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -50,6 +53,7 @@ export const SuppliersPage: React.FC = () => {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
 
   const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
+  const [isAiScanModalOpen, setIsAiScanModalOpen] = useState(false);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<number | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -163,13 +167,23 @@ export const SuppliersPage: React.FC = () => {
 
         <div className="flex items-center gap-2.5">
           {activeTab === 'purchases' ? (
-            <Button
-              onClick={() => setIsPurchaseModalOpen(true)}
-              className="flex items-center gap-2 shadow-sm font-semibold"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Catat Pembelian / Restock</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsAiScanModalOpen(true)}
+                className="flex items-center gap-2 border-brand-300 bg-brand-50/60 text-brand-700 hover:bg-brand-100/80 shadow-sm font-semibold transition-all"
+              >
+                <Sparkles className="w-4 h-4 text-brand-600 animate-pulse" />
+                <span>📸 Scan Nota Otomatis (AI)</span>
+              </Button>
+              <Button
+                onClick={() => setIsPurchaseModalOpen(true)}
+                className="flex items-center gap-2 shadow-sm font-semibold"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Catat Manual</span>
+              </Button>
+            </div>
           ) : (
             <Button
               onClick={() => {
@@ -728,6 +742,11 @@ export const SuppliersPage: React.FC = () => {
       <PurchaseFormModal
         isOpen={isPurchaseModalOpen}
         onClose={() => setIsPurchaseModalOpen(false)}
+      />
+
+      <AiScanReceiptModal
+        isOpen={isAiScanModalOpen}
+        onClose={() => setIsAiScanModalOpen(false)}
       />
 
       <PurchaseDetailModal

@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, MovementType, PurchasePaymentType, PurchasePaymentStatus, PurchaseStatus, PaymentMethod } from '@prisma/client';
 import { prisma } from '../config/prisma';
 import { CreatePurchaseInput, PurchasePaymentInput, PurchaseQueryInput } from '../validations/purchaseValidation';
 
@@ -526,5 +526,238 @@ export class PurchaseService {
       dueSoonCount,
       activeSuppliersCount: totalSuppliers,
     };
+  }
+
+  /**
+   * Smart Import from AI Scan or Excel
+   */
+  static async smartImport(input: any, userId: number) {
+    return prisma.$transaction(async (tx) => {
+      // 1. Resolve or create Supplier
+      let supplierId = input.supplier?.id;
+      if (!supplierId && input.supplier?.name) {
+        // Try finding supplier by name
+        const existingSupp = await tx.supplier.findFirst({
+          where: { name: { contains: input.supplier.name } },
+        });
+
+        if (existingSupp) {
+          supplierId = existingSupp.id;
+        } else {
+          // Generate code
+          const suppCount = await tx.supplier.count();
+          const code = `SUPP-${String(suppCount + 1).padStart(3, '0')}`;
+          const newSupp = await tx.supplier.create({
+            data: {
+              code,
+              name: input.supplier.name,
+              phone: input.supplier.phone || null,
+              address: input.supplier.address || null,
+              isActive: true,
+            },
+          });
+          supplierId = newSupp.id;
+        }
+      }
+
+      if (!supplierId) {
+        const firstSupp = await tx.supplier.findFirst({ where: { isActive: true } });
+        if (!firstSupp) {
+          throw new Error('Supplier tidak ditemukan dan gagal dibuat.');
+        }
+        supplierId = firstSupp.id;
+      }
+
+      // 2. Generate Invoice Number
+      const invoiceNumber = await this.generateInvoiceNumber(tx);
+      let calculatedTotal = new Prisma.Decimal(0);
+
+      // 3. Process each item (existing or new product)
+      const preparedItems: any[] = [];
+      const defaultCategory = await tx.category.findFirst();
+
+      for (const item of input.items) {
+        let productId = item.productId;
+        let product: any = null;
+
+        if (productId) {
+          product = await tx.product.findUnique({
+            where: { id: productId },
+            include: { units: true },
+          });
+        }
+
+        // If new product or not found, create new Product
+        if (!product) {
+          const catId = item.categoryId || defaultCategory?.id || 1;
+          const sku = item.sku || `BRG-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 900 + 100)}`;
+          const barcode = item.barcode || sku;
+          const factor = Number(item.conversionFactor) || 1;
+          const baseUnit = (item.baseUnit || 'PCS').toUpperCase();
+          const baseCost = item.baseCost || Math.round(Number(item.unitCost || 0) / factor);
+          const sellingPrice = item.sellingPrice || Math.round((baseCost * 1.1) / 100) * 100;
+          const wholesalePrice = item.wholesalePrice || Math.round((baseCost * 1.05) / 100) * 100;
+
+          product = await tx.product.create({
+            data: {
+              sku,
+              barcode,
+              name: item.name,
+              categoryId: catId,
+              baseUnit,
+              currentStock: 0,
+              purchasePrice: baseCost,
+              isActive: true,
+            },
+          });
+
+          // Create base unit
+          const baseUnitRecord = await tx.productUnit.create({
+            data: {
+              productId: product.id,
+              unitName: baseUnit,
+              conversionFactor: 1,
+              isBaseUnit: true,
+              price: sellingPrice,
+              wholesalePrice: wholesalePrice,
+              barcode: barcode,
+            },
+          });
+
+          // If purchase unit is different (e.g. DUS / SAK), create conversion unit
+          const purchaseUnitName = (item.purchaseUnitName || item.unit || baseUnit).toUpperCase();
+          let purchaseUnitRecord = baseUnitRecord;
+
+          if (factor > 1 && purchaseUnitName !== baseUnit) {
+            purchaseUnitRecord = await tx.productUnit.create({
+              data: {
+                productId: product.id,
+                unitName: purchaseUnitName,
+                conversionFactor: factor,
+                isBaseUnit: false,
+                price: sellingPrice * factor,
+                wholesalePrice: wholesalePrice * factor,
+                barcode: `${barcode}-U2`,
+              },
+            });
+          }
+
+          product.units = [baseUnitRecord, purchaseUnitRecord];
+          productId = product.id;
+        }
+
+        // Determine unit info
+        const factor = Number(item.conversionFactor) || 1;
+        const purchaseUnitName = item.purchaseUnitName || item.unit || product.baseUnit;
+        const matchingUnit = product.units?.find((u: any) => u.unitName.toUpperCase() === purchaseUnitName.toUpperCase());
+
+        const qty = new Prisma.Decimal(item.quantity || 1);
+        const convFactor = new Prisma.Decimal(factor);
+        const baseQty = qty.mul(convFactor);
+        const unitCost = new Prisma.Decimal(item.unitCost || 0);
+        const baseCost = convFactor.gt(0) ? unitCost.div(convFactor) : unitCost;
+        const subtotal = qty.mul(unitCost);
+
+        calculatedTotal = calculatedTotal.add(subtotal);
+
+        // Update product stock and purchasePrice
+        const prevStock = new Prisma.Decimal(product.currentStock || 0);
+        const nextStock = prevStock.add(baseQty);
+
+        await tx.product.update({
+          where: { id: product.id },
+          data: {
+            currentStock: nextStock,
+            purchasePrice: baseCost,
+          },
+        });
+
+        // Stock movement
+        await tx.stockMovement.create({
+          data: {
+            productId: product.id,
+            type: MovementType.IN,
+            quantity: baseQty,
+            previousStock: prevStock,
+            currentStock: nextStock,
+            referenceType: 'PURCHASE',
+            referenceId: invoiceNumber,
+            note: `Restock via Import Nota: ${input.supplierInvoiceNo || invoiceNumber}`,
+            userId,
+          },
+        });
+
+        preparedItems.push({
+          productId: product.id,
+          productUnitId: matchingUnit?.id || null,
+          productName: product.name,
+          sku: product.sku,
+          unitName: purchaseUnitName,
+          conversionFactor: convFactor,
+          quantity: qty,
+          baseQuantity: baseQty,
+          unitCost,
+          baseCost,
+          subtotal,
+        });
+      }
+
+      // 4. Create Purchase record
+      const isTempo = input.paymentType === 'TEMPO';
+      const purchaseDate = input.purchaseDate ? new Date(input.purchaseDate) : new Date();
+      let dueDate: Date | null = null;
+      if (isTempo) {
+        if (input.dueDate) {
+          dueDate = new Date(input.dueDate);
+        } else {
+          dueDate = new Date(purchaseDate);
+          dueDate.setDate(dueDate.getDate() + 7);
+        }
+      }
+
+      const totalAmount = calculatedTotal;
+      const amountPaid = isTempo ? new Prisma.Decimal(0) : totalAmount;
+
+      const purchase = await tx.purchase.create({
+        data: {
+          purchaseNumber: invoiceNumber,
+          supplierInvoiceNo: input.supplierInvoiceNo || null,
+          supplierId,
+          userId,
+          purchaseDate,
+          paymentType: isTempo ? PurchasePaymentType.TEMPO : PurchasePaymentType.CASH,
+          paymentStatus: isTempo ? PurchasePaymentStatus.UNPAID : PurchasePaymentStatus.PAID,
+          dueDate,
+          subtotal: totalAmount,
+          totalAmount,
+          amountPaid,
+          status: PurchaseStatus.RECEIVED,
+          notes: input.notes || 'Import otomatis dari scan nota AI.',
+          items: {
+            create: preparedItems,
+          },
+        },
+        include: {
+          items: true,
+          supplier: true,
+        },
+      });
+
+      // 5. If CASH, record PurchasePayment
+      if (!isTempo) {
+        await tx.purchasePayment.create({
+          data: {
+            purchaseId: purchase.id,
+            userId,
+            amount: totalAmount,
+            paymentDate: purchaseDate,
+            paymentMethod: PaymentMethod.CASH,
+            note: 'Pembayaran tunai lunas saat import nota.',
+          },
+        });
+      }
+
+      return purchase;
+    });
   }
 }
