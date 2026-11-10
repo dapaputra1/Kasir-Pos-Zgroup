@@ -85,9 +85,9 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {errorMsg && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-rose-700">{errorMsg}</p>
+          <div className="p-3 bg-[#FDF2F2] border border-[#F0C2C2] rounded-lg flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-[#B64545] shrink-0 mt-0.5" />
+            <p className="text-xs text-[#B64545]">{errorMsg}</p>
           </div>
         )}
 
@@ -112,14 +112,14 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
           </div>
           <div className="flex justify-between items-center">
             <span className="text-ink-muted">Total Penjualan Tunai ({formatNumber(shiftData.metrics?.totalOrdersCount ?? 0)} Trx):</span>
-            <span className="font-semibold text-emerald-700">
+            <span className="font-semibold text-brand-600">
               +{formatRupiah(shiftData.metrics?.totalCashSales ?? 0)}
             </span>
           </div>
           {(shiftData.metrics?.totalCashDebtPaid ?? 0) > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-ink-muted">Pelunasan Bon Tunai:</span>
-              <span className="font-semibold text-emerald-700">
+              <span className="font-semibold text-brand-600">
                 +{formatRupiah(shiftData.metrics?.totalCashDebtPaid ?? 0)}
               </span>
             </div>
@@ -127,7 +127,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
           {(shiftData.metrics?.totalCashRefunds ?? 0) > 0 && (
             <div className="flex justify-between items-center">
               <span className="text-ink-muted">Retur Tunai Keluar:</span>
-              <span className="font-semibold text-rose-700">
+              <span className="font-semibold text-[#B64545]">
                 -{formatRupiah(shiftData.metrics?.totalCashRefunds ?? 0)}
               </span>
             </div>
@@ -145,7 +145,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
         {/* Input Actual Closing Cash */}
         <div>
           <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
-            Uang Fisik Hasil Hitungan Kasir (Riil di Laci) <span className="text-rose-500">*</span>
+            Uang Fisik Hasil Hitungan Kasir (Riil di Laci) <span className="text-[#B64545]">*</span>
           </label>
           <Input
             type="number"
@@ -166,19 +166,19 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
         <div
           className={`p-3.5 rounded-xl border flex items-center justify-between ${
             difference === 0
-              ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+              ? 'bg-brand-50 border-brand-200 text-brand-700'
               : difference > 0
-              ? 'bg-blue-50/70 border-blue-200 text-blue-900'
-              : 'bg-rose-50/70 border-rose-200 text-rose-900'
+              ? 'bg-brand-50 border-brand-200 text-brand-700'
+              : 'bg-[#FDF2F2] border-[#F0C2C2] text-[#B64545]'
           }`}
         >
           <div className="flex items-center gap-2">
             {difference === 0 ? (
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
             ) : difference > 0 ? (
-              <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
+              <TrendingUp className="w-5 h-5 text-brand-600 shrink-0" />
             ) : (
-              <TrendingDown className="w-5 h-5 text-rose-600 shrink-0" />
+              <TrendingDown className="w-5 h-5 text-[#B64545] shrink-0" />
             )}
             <div>
               <div className="text-xs font-bold">

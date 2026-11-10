@@ -5,19 +5,41 @@ import { CheckoutInput, OrderQueryInput } from '../validations/orderValidation';
 export class PosService {
   /**
    * Scan product by Barcode or SKU
-   * Detects both product-level barcodes and unit-level barcodes (e.g., carton barcode vs piece barcode)
+   * Detects:
+   * 1. ProductUnit-level barcodes (e.g., carton barcode vs piece barcode)
+   * 2. Product-level barcodes
+   * 3. SKU codes (case-insensitive)
+   * 4. EAN-13 / UPC-A format padding/unpadding (0-prefix normalization)
    */
   static async scanBarcode(code: string) {
-    const cleanCode = code.trim();
-    if (!cleanCode) {
-      const error: any = new Error('Kode barcode tidak boleh kosong.');
+    const rawCode = (code || '').trim();
+    if (!rawCode) {
+      const error: any = new Error('Kode barcode atau SKU tidak boleh kosong.');
       error.statusCode = 400;
       throw error;
     }
 
+    // Generate candidate codes (exact, uppercase, trimmed, and UPC/EAN variants)
+    const candidateCodes = new Set<string>();
+    candidateCodes.add(rawCode);
+    candidateCodes.add(rawCode.toUpperCase());
+    candidateCodes.add(rawCode.toLowerCase());
+
+    // UPC-A (12 digits) <-> EAN-13 (13 digits with leading 0)
+    if (rawCode.length === 13 && rawCode.startsWith('0')) {
+      candidateCodes.add(rawCode.substring(1));
+    }
+    if (rawCode.length === 12) {
+      candidateCodes.add('0' + rawCode);
+    }
+
+    const codeList = Array.from(candidateCodes);
+
     // 1. Search if barcode matches a specific productUnit barcode
     const matchedUnit = await prisma.productUnit.findFirst({
-      where: { barcode: cleanCode },
+      where: {
+        barcode: { in: codeList },
+      },
       include: {
         priceTiers: { orderBy: { minQuantity: 'asc' } },
         product: {
@@ -39,7 +61,15 @@ export class PosService {
       },
     });
 
-    if (matchedUnit && matchedUnit.product.isActive) {
+    if (matchedUnit) {
+      if (!matchedUnit.product.isActive) {
+        const error: any = new Error(
+          `Barang "${matchedUnit.product.name}" saat ini berstatus non-aktif.`
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+
       return {
         product: matchedUnit.product,
         matchedUnit: matchedUnit,
@@ -47,11 +77,13 @@ export class PosService {
       };
     }
 
-    // 2. Search if barcode matches product barcode
+    // 2. Search if matches product barcode OR product SKU
     const product = await prisma.product.findFirst({
       where: {
-        isActive: true,
-        barcode: cleanCode,
+        OR: [
+          { barcode: { in: codeList } },
+          { sku: { in: codeList } },
+        ],
       },
       include: {
         category: true,
@@ -69,21 +101,35 @@ export class PosService {
       },
     });
 
-    if (!product) {
-      const error: any = new Error(`Barang dengan barcode '${cleanCode}' tidak ditemukan.`);
-      error.statusCode = 404;
-      error.code = 'PRODUCT_NOT_FOUND';
-      throw error;
+    if (product) {
+      if (!product.isActive) {
+        const error: any = new Error(
+          `Barang "${product.name}" saat ini berstatus non-aktif.`
+        );
+        error.statusCode = 400;
+        throw error;
+      }
+
+      // Check if any specific unit has the matching barcode, otherwise default to base unit
+      const unitWithBarcode = product.units.find(
+        (u) => u.barcode && candidateCodes.has(u.barcode)
+      );
+      const baseUnit =
+        unitWithBarcode ||
+        product.units.find((u) => u.isBaseUnit) ||
+        product.units[0];
+
+      return {
+        product,
+        matchedUnit: baseUnit || null,
+        scanType: 'PRODUCT_MATCH',
+      };
     }
 
-    // Default to base unit if exists, or first unit
-    const baseUnit = product.units.find((u) => u.isBaseUnit) || product.units[0];
-
-    return {
-      product,
-      matchedUnit: baseUnit || null,
-      scanType: 'PRODUCT_MATCH',
-    };
+    const error: any = new Error(`Barang dengan barcode atau SKU '${rawCode}' tidak ditemukan.`);
+    error.statusCode = 404;
+    error.code = 'PRODUCT_NOT_FOUND';
+    throw error;
   }
 
   /**
@@ -142,23 +188,54 @@ export class PosService {
 
     // Run within a Prisma ACID transaction
     return prisma.$transaction(async (tx) => {
-      // 1. Generate daily sequence invoice number: INV-YYYYMMDD-XXXX
+      // 0. Fetch current user and verify permissions
+      const currentUser = await tx.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, role: true },
+      });
+
+      // Optional active customer verification
+      let customer = null;
+      if (input.customerId) {
+        customer = await tx.customer.findUnique({
+          where: { id: input.customerId },
+        });
+        if (!customer) {
+          const error: any = new Error('Data pelanggan yang dipilih tidak ditemukan.');
+          error.statusCode = 404;
+          throw error;
+        }
+        if (!customer.isActive) {
+          const error: any = new Error(`Pelanggan "${customer.name}" sedang berstatus non-aktif.`);
+          error.statusCode = 400;
+          throw error;
+        }
+      }
+
+      // 1. Generate daily sequence invoice number: INV-YYYYMMDD-XXXX (safely query highest sequence)
       const today = new Date();
       const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ''); // e.g. "20261019"
       
-      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-
-      const dailyOrderCount = await tx.order.count({
+      const lastOrderToday = await tx.order.findFirst({
         where: {
-          createdAt: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          invoiceNumber: { startsWith: `INV-${dateStr}-` },
         },
+        orderBy: { invoiceNumber: 'desc' },
+        select: { invoiceNumber: true },
       });
 
-      const sequence = String(dailyOrderCount + 1).padStart(4, '0');
+      let nextSeq = 1;
+      if (lastOrderToday) {
+        const parts = lastOrderToday.invoiceNumber.split('-');
+        if (parts.length >= 3) {
+          const lastSeq = parseInt(parts[2], 10);
+          if (!isNaN(lastSeq)) {
+            nextSeq = lastSeq + 1;
+          }
+        }
+      }
+
+      const sequence = String(nextSeq).padStart(4, '0');
       const invoiceNumber = `INV-${dateStr}-${sequence}`;
 
       // 2. Process each item: validate stock & prepare snapshots
@@ -200,18 +277,38 @@ export class PosService {
         const itemQuantity = Number(item.quantity);
         const baseQuantity = itemQuantity * conversionFactor;
 
-        // Calculate unit price: customPrice if provided, otherwise check Volume Tier or standard unit price
-        let unitPrice =
-          item.customPrice !== undefined && item.customPrice !== null
-            ? Number(item.customPrice)
-            : Number(unit?.price || 0);
+        // Determine standard catalog price for customer tier & volume tier
+        let standardPrice = Number(unit?.price || 0);
 
-        // Auto Volume Tier Pricing (Diskon Bertingkat Grosir)
-        if ((item.customPrice === undefined || item.customPrice === null) && unit?.priceTiers && unit.priceTiers.length > 0) {
+        if (customer?.tier === 'GROSIR' && unit?.wholesalePrice && Number(unit.wholesalePrice) > 0) {
+          standardPrice = Number(unit.wholesalePrice);
+        }
+
+        if (unit?.priceTiers && unit.priceTiers.length > 0) {
           const matchingTier = unit.priceTiers.find((t) => itemQuantity >= Number(t.minQuantity));
           if (matchingTier) {
-            unitPrice = Number(matchingTier.price);
+            standardPrice = Number(matchingTier.price);
           }
+        }
+
+        let unitPrice = standardPrice;
+
+        // Custom price protection: Cashier cannot sell below base product cost without supervisor approval
+        if (item.customPrice !== undefined && item.customPrice !== null) {
+          const submittedPrice = Number(item.customPrice);
+          const minAllowedCost = Number(product.purchasePrice) * conversionFactor;
+
+          if (currentUser?.role === 'CASHIER' && submittedPrice < standardPrice) {
+            if (submittedPrice < minAllowedCost) {
+              const error: any = new Error(
+                `Harga kustom untuk "${product.name}" (Rp ${submittedPrice.toLocaleString('id-ID')}) tidak boleh lebih rendah dari modal dasar (Rp ${minAllowedCost.toLocaleString('id-ID')}) tanpa otorisasi supervisor.`
+              );
+              error.statusCode = 400;
+              error.code = 'PRICE_BELOW_COST';
+              throw error;
+            }
+          }
+          unitPrice = submittedPrice;
         }
 
         const itemSubtotal = itemQuantity * unitPrice;
@@ -245,7 +342,7 @@ export class PosService {
 
             await tx.product.update({
               where: { id: compProduct.id },
-              data: { currentStock: newCompStock },
+              data: { currentStock: { decrement: reqQty } },
             });
 
             stockMovementData.push({
@@ -280,11 +377,11 @@ export class PosService {
 
           const newStock = currentStock - baseQuantity;
 
-          // Update product stock atomically
+          // Update product stock atomically with decrement
           await tx.product.update({
             where: { id: product.id },
             data: {
-              currentStock: newStock,
+              currentStock: { decrement: baseQuantity },
             },
           });
 
@@ -321,7 +418,7 @@ export class PosService {
       }
 
       // 3. Coupon Promotion atomic application & discount calculation
-      let discount = Number(input.discountAmount) || 0;
+      let discount = 0;
       let appliedPromoCode: string | null = null;
 
       if (input.promoCode && input.promoCode.trim()) {
@@ -375,7 +472,7 @@ export class PosService {
         }
 
         promoDiscount = Math.round(promoDiscount);
-        discount = Math.max(discount, promoDiscount);
+        discount = promoDiscount;
         appliedPromoCode = promo.code;
 
         // Atomically increment promo usage counter
@@ -383,6 +480,18 @@ export class PosService {
           where: { id: promo.id },
           data: { usedCount: { increment: 1 } },
         });
+      } else if (input.discountAmount && Number(input.discountAmount) > 0) {
+        const manualDiscount = Number(input.discountAmount);
+        // Manual discount without promo code is restricted for CASHIER role to max 10%
+        if (currentUser?.role === 'CASHIER' && manualDiscount > subtotal * 0.1) {
+          const error: any = new Error(
+            'Diskon manual kasir melebihi batas toleransi maksimal (10%). Butuh otorisasi supervisor/Admin.'
+          );
+          error.statusCode = 400;
+          error.code = 'UNAUTHORIZED_DISCOUNT';
+          throw error;
+        }
+        discount = Math.min(manualDiscount, subtotal);
       }
 
       const tax = Number(input.taxAmount) || 0;
@@ -399,6 +508,18 @@ export class PosService {
         throw error;
       }
 
+      // Validate payment amount for Non-cash instant payment methods (TRANSFER, QRIS)
+      if (input.paymentMethod === 'TRANSFER' || input.paymentMethod === 'QRIS') {
+        if (amountPaid < totalAmount) {
+          const error: any = new Error(
+            `Pembayaran ${input.paymentMethod} belum mencukupi. Total tagihan: Rp ${totalAmount.toLocaleString('id-ID')}, uang diterima: Rp ${amountPaid.toLocaleString('id-ID')}.`
+          );
+          error.statusCode = 400;
+          error.code = 'INSUFFICIENT_PAYMENT';
+          throw error;
+        }
+      }
+
       const changeAmount = input.paymentMethod === 'CASH' ? Math.max(0, amountPaid - totalAmount) : 0;
       if (input.paymentMethod === 'CASH') {
         amountPaid = totalAmount; // Record exact paid for cash accounting
@@ -409,6 +530,16 @@ export class PosService {
       let dueDate: Date | null = null;
 
       if (input.paymentMethod === 'TEMPO') {
+        // Enforce mandatory registered customer for TEMPO credit transactions
+        if (!input.customerId || !customer) {
+          const error: any = new Error(
+            'Transaksi TEMPO (bon/piutang) wajib memilih data pelanggan terdaftar agar piutang tercatat dengan sah.'
+          );
+          error.statusCode = 400;
+          error.code = 'CUSTOMER_REQUIRED_FOR_CREDIT';
+          throw error;
+        }
+
         const d = new Date();
         d.setDate(d.getDate() + 14); // Default 14 days tempo
         dueDate = d;
@@ -421,37 +552,31 @@ export class PosService {
           paymentStatus = 'UNPAID';
         }
 
-        // Credit Limit verification if customer selected
-        if (input.customerId) {
-          const customer = await tx.customer.findUnique({
-            where: { id: input.customerId },
+        // Credit Limit verification
+        if (customer && Number(customer.creditLimit) > 0) {
+          const currentDebtOrders = await tx.order.findMany({
+            where: {
+              customerId: customer.id,
+              paymentMethod: 'TEMPO',
+              paymentStatus: { in: ['UNPAID', 'PARTIAL'] },
+              status: 'COMPLETED',
+            },
+            select: { totalAmount: true, amountPaid: true },
           });
 
-          if (customer && Number(customer.creditLimit) > 0) {
-            const currentDebtOrders = await tx.order.findMany({
-              where: {
-                customerId: customer.id,
-                paymentMethod: 'TEMPO',
-                paymentStatus: { in: ['UNPAID', 'PARTIAL'] },
-                status: 'COMPLETED',
-              },
-              select: { totalAmount: true, amountPaid: true },
-            });
+          const currentDebt = currentDebtOrders.reduce((acc, curr) => {
+            const rem = Number(curr.totalAmount) - Number(curr.amountPaid);
+            return acc + (rem > 0 ? rem : 0);
+          }, 0);
 
-            const currentDebt = currentDebtOrders.reduce((acc, curr) => {
-              const rem = Number(curr.totalAmount) - Number(curr.amountPaid);
-              return acc + (rem > 0 ? rem : 0);
-            }, 0);
-
-            const newDebt = totalAmount - amountPaid;
-            if (currentDebt + newDebt > Number(customer.creditLimit)) {
-              const error: any = new Error(
-                `Plafon piutang pelanggan "${customer.name}" terlampaui. Batas kredit: Rp ${Number(customer.creditLimit).toLocaleString('id-ID')}, total piutang berjalan jika transaksi dilanjutkan: Rp ${(currentDebt + newDebt).toLocaleString('id-ID')}.`
-              );
-              error.statusCode = 400;
-              error.code = 'CREDIT_LIMIT_EXCEEDED';
-              throw error;
-            }
+          const newDebt = totalAmount - amountPaid;
+          if (currentDebt + newDebt > Number(customer.creditLimit)) {
+            const error: any = new Error(
+              `Plafon piutang pelanggan "${customer.name}" terlampaui. Batas kredit: Rp ${Number(customer.creditLimit).toLocaleString('id-ID')}, total piutang berjalan jika transaksi dilanjutkan: Rp ${(currentDebt + newDebt).toLocaleString('id-ID')}.`
+            );
+            error.statusCode = 400;
+            error.code = 'CREDIT_LIMIT_EXCEEDED';
+            throw error;
           }
         }
       }

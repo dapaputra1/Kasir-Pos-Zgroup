@@ -9,13 +9,20 @@ export const AppLayout: React.FC = () => {
 
   // Determine current page title based on route
   const getPageTitle = (pathname: string) => {
-    if (pathname === '/' || pathname === '/dashboard') return 'Ringkasan Dashboard';
-    if (pathname.startsWith('/products')) return 'Manajemen Produk & Satuan';
-    if (pathname.startsWith('/inventory')) return 'Mutasi & Riwayat Stok';
+    if (pathname === '/' || pathname === '/dashboard') return 'Dashboard Operasional Toko';
     if (pathname.startsWith('/pos')) return 'Mesin Kasir (POS)';
-    if (pathname.startsWith('/sales')) return 'Riwayat Penjualan';
-    if (pathname.startsWith('/suppliers')) return 'Supplier & Pembelian';
-    if (pathname.startsWith('/users')) return 'Manajemen Pengguna';
+    if (pathname.startsWith('/sales')) return 'Riwayat Transaksi Penjualan';
+    if (pathname.startsWith('/returns')) return 'Retur Barang & Pengembalian Dana';
+    if (pathname.startsWith('/customers')) return 'Pelanggan Toko & Piutang Bon Tempo';
+    if (pathname.startsWith('/products')) return 'Katalog Produk & Satuan Bertingkat';
+    if (pathname.startsWith('/categories')) return 'Kategori Produk Sembako';
+    if (pathname.startsWith('/barcode-print')) return 'Cetak Label Barcode & Rak';
+    if (pathname.startsWith('/promotions')) return 'Promosi Voucher & Bundling Sembako';
+    if (pathname.startsWith('/inventory')) return 'Mutasi Stok & Stock Opname';
+    if (pathname.startsWith('/suppliers')) return 'Supplier & Pembelian Kulakan';
+    if (pathname.startsWith('/reports')) return 'Laporan Finansial & Operasional';
+    if (pathname.startsWith('/users')) return 'Kelola Pengguna Sistem';
+    if (pathname.startsWith('/settings')) return 'Pengaturan Profil Toko';
     return 'GrosirPOS';
   };
 

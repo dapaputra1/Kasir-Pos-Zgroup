@@ -109,25 +109,64 @@ export const PosPage: React.FC = () => {
     barcodeInputRef.current?.focus();
   }, []);
 
-  // Keyboard shortcuts (F2, F4, F8)
+  // Keyboard shortcuts (F2, F4, F8) & Barcode Gun Auto-catcher
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F2') {
         e.preventDefault();
         barcodeInputRef.current?.focus();
+        return;
       } else if (e.key === 'F4') {
         e.preventDefault();
         if (cart.length > 0) {
           openPaymentModal();
         }
+        return;
       } else if (e.key === 'F8') {
         e.preventDefault();
         setIsCameraModalOpen(true);
+        return;
+      }
+
+      // Ignore modifier combinations (Ctrl/Cmd/Alt)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+      // Don't hijack if an input, textarea, or modal is currently active
+      const activeEl = document.activeElement as HTMLElement | null;
+      const isInputFocused =
+        activeEl &&
+        (activeEl.tagName === 'INPUT' ||
+          activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'SELECT' ||
+          activeEl.isContentEditable);
+
+      if (
+        isPaymentModalOpen ||
+        isCameraModalOpen ||
+        isStartShiftModalOpen ||
+        isCloseShiftModalOpen ||
+        isHoldCartModalOpen ||
+        completedOrder
+      ) {
+        return;
+      }
+
+      // If user scans with barcode gun or starts typing without input focus, redirect to barcode input
+      if (!isInputFocused && e.key.length === 1 && barcodeInputRef.current) {
+        barcodeInputRef.current.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cart]);
+  }, [
+    cart,
+    isPaymentModalOpen,
+    isCameraModalOpen,
+    isStartShiftModalOpen,
+    isCloseShiftModalOpen,
+    isHoldCartModalOpen,
+    completedOrder,
+  ]);
 
   // Fetch Categories
   const { data: categories = [] } = useQuery<Category[]>({
@@ -168,11 +207,16 @@ export const PosPage: React.FC = () => {
     if (!cleanCode) return;
 
     try {
-      const res = await api.get(`/pos/lookup/${encodeURIComponent(cleanCode)}`);
+      const res = await api.get(`/pos/scan/${encodeURIComponent(cleanCode)}`);
       const { product, matchedUnit } = res.data.data as {
         product: Product;
         matchedUnit: ProductUnit;
       };
+
+      if (!matchedUnit) {
+        toastError(`Produk "${product.name}" belum memiliki data satuan harga.`);
+        return;
+      }
 
       addItemToCart(product, matchedUnit);
       sound.playScanSuccess();
@@ -180,7 +224,10 @@ export const PosPage: React.FC = () => {
       barcodeInputRef.current?.focus();
     } catch (err: any) {
       sound.playScanError();
-      toastError(err.response?.data?.error?.message || `Barcode "${cleanCode}" tidak ditemukan.`);
+      const serverMsg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.message;
+      toastError(serverMsg || `Barcode atau SKU "${cleanCode}" tidak ditemukan.`);
       setBarcodeInput('');
       barcodeInputRef.current?.focus();
     }
@@ -422,7 +469,7 @@ export const PosPage: React.FC = () => {
         <div className="flex items-center gap-3">
           {currentShift ? (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse shrink-0" />
               <span className="font-bold text-ink">Shift Aktif: {currentShift.user.name}</span>
               <span className="text-ink-muted hidden sm:inline">•</span>
               <span className="text-ink-muted hidden sm:inline">
@@ -430,13 +477,13 @@ export const PosPage: React.FC = () => {
               </span>
               <span className="text-ink-muted hidden sm:inline">•</span>
               <span className="text-ink-muted hidden sm:inline">
-                Kas Masuk: <span className="font-semibold text-emerald-700 font-mono tabular-nums">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</span>
+                Kas Masuk: <span className="font-bold text-brand-600 font-mono tabular-nums">{formatRupiah(currentShift.metrics?.totalCashSales ?? 0)}</span>
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsCloseShiftModalOpen(true)}
-                className="text-[11px] h-7 px-2.5 ml-1 text-rose-600 border-rose-200 hover:bg-rose-50"
+                className="text-[11px] h-7 px-2.5 ml-1 text-brand-700 border-brand-200 hover:bg-brand-50"
               >
                 <Wallet className="w-3 h-3 mr-1" />
                 Tutup Shift
@@ -444,8 +491,8 @@ export const PosPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-              <span className="font-medium text-amber-800">Shift kasir belum dibuka</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-400 shrink-0" />
+              <span className="font-bold text-brand-700">Shift kasir belum dibuka</span>
               <Button
                 variant="primary"
                 size="sm"
@@ -469,7 +516,7 @@ export const PosPage: React.FC = () => {
                 setHoldCartMode('save');
                 setIsHoldCartModalOpen(true);
               }}
-              className="text-[11px] h-7 px-2.5 text-amber-700 border-amber-300 hover:bg-amber-50"
+              className="text-[11px] h-7 px-2.5 text-brand-700 border-brand-200 hover:bg-brand-50"
             >
               <PauseCircle className="w-3.5 h-3.5 mr-1" />
               Tahan Keranjang (Hold)
@@ -483,12 +530,12 @@ export const PosPage: React.FC = () => {
               setHoldCartMode('list');
               setIsHoldCartModalOpen(true);
             }}
-            className="text-[11px] h-7 px-2.5 text-ink hover:bg-surface-muted"
+            className="text-[11px] h-7 px-2.5 text-brand-700 border-brand-200 hover:bg-brand-50"
           >
-            <Clock className="w-3.5 h-3.5 mr-1 text-ink-muted" />
+            <Clock className="w-3.5 h-3.5 mr-1 text-brand-500" />
             Keranjang Tertahan
             {heldCartCount > 0 && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-bold text-[10px]">
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-brand-500 text-white font-bold text-[10px]">
                 {heldCartCount}
               </span>
             )}
@@ -511,9 +558,9 @@ export const PosPage: React.FC = () => {
                 ref={barcodeInputRef}
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder="Scan barcode dengan scanner gun (atau tekan Enter)..."
-                prefixElement={<Barcode className="w-5 h-5 text-brand-600" />}
-                className="font-mono text-base font-semibold"
+                placeholder="Scan barcode dengan scanner gun atau ketik barcode..."
+                prefixElement={<Barcode className="w-5 h-5 text-brand-500" />}
+                className="font-mono text-base font-bold"
               />
             </div>
             <Button
@@ -533,16 +580,16 @@ export const PosPage: React.FC = () => {
             type="button"
             variant="secondary"
             size="md"
-            leftIcon={<Camera className="w-4 h-4 text-brand-600" />}
+            leftIcon={<Camera className="w-4 h-4 text-brand-500" />}
             onClick={() => setIsCameraModalOpen(true)}
             title="Scan menggunakan kamera perangkat (F8)"
           >
             Scan Kamera (F8)
           </Button>
 
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-surface-muted border border-surface-border rounded-md text-xs text-ink-muted">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-semibold text-ink">Scanner Hardware Ready</span>
+          <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-brand-50 border border-brand-200 rounded-md text-xs text-brand-700">
+            <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+            <span className="font-semibold">Scanner Hardware Ready</span>
           </div>
         </div>
       </div>
@@ -571,7 +618,7 @@ export const PosPage: React.FC = () => {
           <ShoppingCart className="w-4 h-4" />
           <span>Keranjang Kasir ({cart.length})</span>
           {cart.length > 0 && (
-            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono tabular-nums">
+            <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-mono tabular-nums">
               {formatRupiah(totalAmount)}
             </span>
           )}
@@ -601,10 +648,10 @@ export const PosPage: React.FC = () => {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
               <button
                 onClick={() => setSelectedCategoryId(null)}
-                className={`px-3 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap min-h-[32px] ${
+                className={`px-3.5 py-1.5 rounded font-bold transition-colors whitespace-nowrap min-h-[34px] cursor-pointer ${
                   selectedCategoryId === null
-                    ? 'bg-brand-500 text-white'
-                    : 'bg-surface-subtle text-ink hover:bg-gray-200'
+                    ? 'bg-brand-500 text-white shadow-xs'
+                    : 'bg-surface-subtle text-ink hover:bg-brand-50 hover:text-brand-700'
                 }`}
               >
                 Semua Kategori
@@ -613,10 +660,10 @@ export const PosPage: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`px-3 py-1.5 rounded-full font-semibold transition-colors whitespace-nowrap min-h-[32px] ${
+                  className={`px-3.5 py-1.5 rounded font-bold transition-colors whitespace-nowrap min-h-[34px] cursor-pointer ${
                     selectedCategoryId === cat.id
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-surface-subtle text-ink hover:bg-gray-200'
+                      ? 'bg-brand-500 text-white shadow-xs'
+                      : 'bg-surface-subtle text-ink hover:bg-brand-50 hover:text-brand-700'
                   }`}
                 >
                   {cat.name}
@@ -635,8 +682,8 @@ export const PosPage: React.FC = () => {
             ) : catalogProducts.length === 0 ? (
               <div className="py-16 text-center text-ink-muted text-xs">
                 <Package className="w-10 h-10 mx-auto text-ink-subtle opacity-50 mb-2" />
-                <p className="font-semibold text-ink">Tidak ada produk ditemukan</p>
-                <p>Coba kata kunci pencarian atau kategori lain.</p>
+                <p className="font-bold text-ink">Tidak ada produk ditemukan</p>
+                <p className="mt-0.5">Coba kata kunci pencarian atau kategori lain.</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
@@ -655,10 +702,10 @@ export const PosPage: React.FC = () => {
                       type="button"
                       disabled={isOut}
                       onClick={() => addProductToCart(prod)}
-                      className={`p-3 rounded-lg border text-left flex flex-col justify-between transition-all select-none min-h-[115px] ${
+                      className={`p-3 rounded-lg border text-left flex flex-col justify-between transition-all select-none min-h-[120px] cursor-pointer ${
                         isOut
-                          ? 'bg-gray-50 border-gray-200 opacity-60 cursor-not-allowed'
-                          : 'bg-white border-surface-border hover:border-brand-500 hover:shadow-xs active:scale-98'
+                          ? 'bg-slate-50 border-surface-border opacity-60 cursor-not-allowed'
+                          : 'bg-white border-surface-border hover:border-brand-500 hover:shadow-xs active:scale-[0.98]'
                       }`}
                     >
                       <div>
@@ -667,10 +714,10 @@ export const PosPage: React.FC = () => {
                           <span
                             className={`font-bold tabular-nums ${
                               isOut
-                                ? 'text-rose-600'
+                                ? 'text-[#B64545]'
                                 : stockNum <= Number(prod.minStock)
-                                ? 'text-amber-600'
-                                : 'text-emerald-700'
+                                ? 'text-[#C6923D]'
+                                : 'text-brand-600'
                             }`}
                           >
                             Stok: {formatNumber(stockNum)} {prod.baseUnit}
@@ -683,25 +730,25 @@ export const PosPage: React.FC = () => {
                         {/* Bundling & Tier Badges */}
                         <div className="flex flex-wrap items-center gap-1 mt-1">
                           {prod.isBundle && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              <Gift className="w-2.5 h-2.5 text-emerald-600" />
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200">
+                              <Gift className="w-2.5 h-2.5 text-brand-700" />
                               Paket
                             </span>
                           )}
                           {baseUnit?.priceTiers && baseUnit.priceTiers.length > 0 && (
-                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                              <Tag className="w-2.5 h-2.5 text-amber-600" />
+                            <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200">
+                              <Tag className="w-2.5 h-2.5 text-brand-700" />
                               Tier Grosir
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="mt-2 pt-1 border-t border-surface-border/60 flex items-center justify-between">
-                        <span className="font-extrabold text-xs text-brand-600 font-mono tabular-nums">
+                      <div className="mt-2 pt-1 border-t border-surface-border flex items-center justify-between">
+                        <span className="font-black text-sm text-brand-500 font-mono tabular-nums">
                           {formatRupiah(displayPrice)}
                         </span>
-                        <span className="text-[10px] text-ink-muted font-medium bg-surface-subtle px-1.5 py-0.5 rounded">
+                        <span className="text-[10px] text-ink-muted font-bold bg-surface-subtle px-1.5 py-0.5 rounded">
                           {baseUnit?.unitName || prod.baseUnit}
                         </span>
                       </div>
@@ -720,12 +767,12 @@ export const PosPage: React.FC = () => {
           }`}
         >
           {/* Cart Header & Customer Tier Toggle */}
-          <div className="p-3 border-b border-surface-border bg-surface-muted/50 flex flex-col gap-2 shrink-0">
+          <div className="p-3.5 border-b border-surface-border bg-surface-muted flex flex-col gap-2.5 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-brand-600" />
-                <h3 className="text-sm font-bold text-ink">Keranjang Penjualan</h3>
-                <span className="bg-brand-100 text-brand-800 text-xs font-black px-2 py-0.5 rounded-full">
+                <ShoppingCart className="w-5 h-5 text-brand-500" />
+                <h3 className="text-sm font-bold text-ink">Keranjang Kasir</h3>
+                <span className="bg-[#EDF2F7] text-brand-500 text-xs font-bold px-2.5 py-0.5 rounded-full border border-[#C8D7E6]">
                   {cart.length} item
                 </span>
               </div>
@@ -734,7 +781,7 @@ export const PosPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setCart([])}
-                  className="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1 p-1 hover:bg-rose-50 rounded"
+                  className="text-xs text-[#B64545] hover:text-[#9F3B3B] font-bold flex items-center gap-1 p-1 hover:bg-[#FDF2F2] rounded transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Kosongkan</span>
@@ -747,9 +794,9 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('REGULAR')}
-                className={`py-1.5 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px] ${
                   customerTier === 'REGULAR'
-                    ? 'bg-white border-brand-500 text-brand-700 shadow-xs ring-1 ring-brand-500'
+                    ? 'bg-white border-brand-500 text-brand-500 shadow-xs ring-1 ring-brand-500'
                     : 'bg-surface-subtle border-surface-border text-ink-muted hover:text-ink'
                 }`}
               >
@@ -760,14 +807,14 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleCustomerTierChange('GROSIR')}
-                className={`py-1.5 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                className={`py-2 px-3 rounded-md text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px] ${
                   customerTier === 'GROSIR'
                     ? 'bg-brand-500 text-white border-brand-600 shadow-xs'
                     : 'bg-surface-subtle border-surface-border text-ink-muted hover:text-ink'
                 }`}
               >
                 <DollarSign className="w-3.5 h-3.5" />
-                <span>Harga Grosir / Partai</span>
+                <span>Harga Grosir / Toko</span>
               </button>
             </div>
 
@@ -779,9 +826,9 @@ export const PosPage: React.FC = () => {
                   onChange={(e) =>
                     setSelectedCustomerId(e.target.value ? Number(e.target.value) : null)
                   }
-                  className="w-full text-xs font-semibold bg-white border border-brand-300 rounded px-2.5 py-1.5 text-brand-900 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full text-xs font-bold bg-white border border-brand-300 rounded-md px-3 py-2 text-ink focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer min-h-[38px]"
                 >
-                  <option value="">-- Pilih Toko / Pelanggan Bon Tempo --</option>
+                  <option value="">-- Pilih Toko Langganan / Bon Tempo --</option>
                   {customers.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.code}) {Number(c.creditLimit) > 0 ? `• Plafon ${formatRupiah(c.creditLimit)}` : ''}
@@ -797,7 +844,7 @@ export const PosPage: React.FC = () => {
             {cart.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center py-12 text-center text-ink-muted text-xs space-y-2">
                 <ShoppingCart className="w-12 h-12 text-ink-subtle opacity-40" />
-                <p className="font-semibold text-sm text-ink">Keranjang Kasir Masih Kosong</p>
+                <p className="font-bold text-sm text-ink">Keranjang Kasir Masih Kosong</p>
                 <p className="max-w-xs text-ink-muted">
                   Scan barcode barang atau klik produk dari katalog sebelah kiri untuk memulai transaksi.
                 </p>
@@ -820,7 +867,7 @@ export const PosPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => handleRemoveItem(index)}
-                        className="text-ink-subtle hover:text-rose-600 p-1 rounded transition-colors"
+                        className="text-ink-subtle hover:text-[#B64545] p-1 rounded transition-colors cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -832,7 +879,7 @@ export const PosPage: React.FC = () => {
                         <select
                           value={item.selectedUnit.id}
                           onChange={(e) => handleUnitChange(index, Number(e.target.value))}
-                          className="bg-surface-subtle text-ink font-semibold text-xs rounded border border-surface-border px-2 py-1 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          className="bg-surface-subtle text-ink font-bold text-xs rounded border border-surface-border px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500 cursor-pointer min-h-[34px]"
                         >
                           {item.availableUnits.map((u) => (
                             <option key={u.id} value={u.id}>
@@ -842,14 +889,14 @@ export const PosPage: React.FC = () => {
                         </select>
                       </div>
 
-                      {/* Quantity Controls */}
+                      {/* Quantity Stepper Controls (Tablet Friendly) */}
                       <div className="flex items-center border border-surface-border rounded-md overflow-hidden bg-white">
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(index, item.quantity - 1)}
-                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center"
+                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center cursor-pointer"
                         >
-                          <Minus className="w-3.5 h-3.5" />
+                          <Minus className="w-4 h-4" />
                         </button>
                         <input
                           type="number"
@@ -864,22 +911,22 @@ export const PosPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => handleQuantityChange(index, item.quantity + 1)}
-                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[30px] min-w-[30px] flex items-center justify-center"
+                          className="p-1.5 text-ink-muted hover:text-ink hover:bg-surface-subtle transition-colors min-h-[34px] min-w-[34px] flex items-center justify-center cursor-pointer"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-4 h-4" />
                         </button>
                       </div>
 
                       {/* Subtotal */}
                       <div className="text-right">
-                        <div className="font-extrabold text-xs text-brand-600 font-mono tabular-nums">
+                        <div className="font-black text-sm text-brand-500 font-mono tabular-nums">
                           {formatRupiah(item.subtotal)}
                         </div>
                         <div className="text-[10px] text-ink-muted font-mono tabular-nums">
                           @{formatRupiah(item.unitPrice)}
                         </div>
                         {item.selectedUnit.priceTiers && item.selectedUnit.priceTiers.some((t) => item.quantity >= Number(t.minQuantity)) && (
-                          <span className="inline-block mt-0.5 text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                          <span className="inline-block mt-0.5 text-[9px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200">
                             Tier Grosir Aktif
                           </span>
                         )}
@@ -888,7 +935,7 @@ export const PosPage: React.FC = () => {
 
                     {/* Stock Alert Warning if insufficient */}
                     {isOverStock && (
-                      <div className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] p-1.5 rounded flex items-center gap-1.5">
+                      <div className="bg-[#FDF2F2] border border-[#F0C2C2] text-[#B64545] text-[10px] p-2 rounded flex items-center gap-1.5 font-medium">
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                         <span>
                           Stok tidak mencukupi! Butuh {formatNumber(totalBaseUnitsNeeded)}{' '}
@@ -903,22 +950,29 @@ export const PosPage: React.FC = () => {
             )}
           </div>
 
-          {/* Cart Bottom Summary & Checkout Button */}
-          <div className="p-3.5 bg-surface-muted/60 border-t border-surface-border space-y-2.5 shrink-0">
-            <div className="space-y-1 text-xs">
+          {/* Cart Bottom Summary & Checkout Button (High Visibility) */}
+          <div className="p-4 bg-surface-muted border-t border-surface-border space-y-3 shrink-0">
+            <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-ink-muted">
                 <span>Subtotal ({cart.length} item)</span>
                 <span className="font-bold text-ink font-mono tabular-nums">{formatRupiah(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
-                <div className="flex justify-between text-rose-600">
-                  <span>Diskon</span>
+                <div className="flex justify-between text-[#B64545] font-semibold">
+                  <span>Diskon Kupon</span>
                   <span className="font-mono tabular-nums">-{formatRupiah(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm font-black text-ink pt-1 border-t border-surface-border">
-                <span>Total Tagihan:</span>
-                <span className="text-brand-600 text-base font-mono tabular-nums">{formatRupiah(totalAmount)}</span>
+            </div>
+
+            {/* Grand Total Banner */}
+            <div className="p-3 bg-[#EDF2F7] border border-[#C8D7E6] rounded-lg flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-brand-500 uppercase tracking-wider block">Total Tagihan</span>
+                <span className="text-[11px] text-ink-muted">Termasuk diskon / kupon</span>
+              </div>
+              <div className="text-2xl font-black text-brand-500 font-mono tabular-nums">
+                {formatRupiah(totalAmount)}
               </div>
             </div>
 
@@ -928,10 +982,10 @@ export const PosPage: React.FC = () => {
               size="lg"
               disabled={cart.length === 0}
               onClick={openPaymentModal}
-              className="w-full font-bold shadow-md text-base"
+              className="w-full font-bold shadow-xs text-base h-12 min-h-[48px]"
               leftIcon={<CreditCard className="w-5 h-5" />}
             >
-              Bayar Sekarang (F4) — {formatRupiah(totalAmount)}
+              Bayar Sekarang (F4)
             </Button>
           </div>
         </div>
@@ -947,11 +1001,13 @@ export const PosPage: React.FC = () => {
       >
         <div className="space-y-4">
           {/* Total Tagihan Banner */}
-          <div className="p-4 bg-brand-50 border border-brand-200 rounded-lg text-center space-y-0.5">
-            <span className="text-xs font-bold text-brand-800 uppercase tracking-wider">
+          <div className="p-4 bg-[#EDF2F7] border border-[#C8D7E6] rounded-lg text-center space-y-0.5">
+            <span className="text-xs font-bold text-brand-500 uppercase tracking-wider">
               Total yang Harus Dibayar
             </span>
-            <div className="text-3xl font-black text-brand-600 font-mono tabular-nums">{formatRupiah(totalAmount)}</div>
+            <div className="text-3xl font-black text-brand-500 font-mono tabular-nums">
+              {formatRupiah(totalAmount)}
+            </div>
           </div>
 
           {/* Metode Pembayaran Tabs */}
@@ -965,10 +1021,10 @@ export const PosPage: React.FC = () => {
                   key={method}
                   type="button"
                   onClick={() => setPaymentMethod(method)}
-                  className={`py-2 px-1 text-xs font-bold rounded-md border text-center transition-colors ${
+                  className={`py-2.5 px-1 text-xs font-bold rounded-md border text-center transition-colors cursor-pointer min-h-[40px] ${
                     paymentMethod === method
                       ? 'bg-brand-500 text-white border-brand-600 shadow-xs'
-                      : 'bg-surface-subtle border-surface-border text-ink hover:bg-gray-200'
+                      : 'bg-surface-subtle border-surface-border text-ink hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200'
                   }`}
                 >
                   {method === 'TEMPO' ? 'Tempo / Bon' : method}
@@ -986,21 +1042,21 @@ export const PosPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setAmountPaid(totalAmount)}
-                    className="text-brand-600 hover:underline normal-case font-semibold"
+                    className="text-brand-500 hover:underline normal-case font-bold cursor-pointer"
                   >
                     Uang Pas
                   </button>
                 </div>
-                <div className="grid grid-cols-3 gap-1.5 text-xs font-mono font-medium">
+                <div className="grid grid-cols-3 gap-2 text-xs font-mono font-bold">
                   {[totalAmount, 50000, 100000, 150000, 200000, 500000].map((amt) => (
                     <button
                       key={amt}
                       type="button"
                       onClick={() => setAmountPaid(amt)}
-                      className={`p-2 rounded-md border transition-colors tabular-nums ${
+                      className={`p-2.5 rounded-md border transition-colors tabular-nums cursor-pointer min-h-[42px] ${
                         amountPaid === amt
-                          ? 'bg-brand-500 text-white border-brand-600 font-bold'
-                          : 'bg-surface-subtle border-surface-border text-ink hover:bg-gray-200'
+                          ? 'bg-brand-500 text-white border-brand-600 shadow-xs'
+                          : 'bg-surface-subtle border-surface-border text-ink hover:bg-brand-50 hover:text-brand-700 hover:border-brand-200'
                       }`}
                     >
                       {formatRupiah(amt)}
@@ -1018,16 +1074,16 @@ export const PosPage: React.FC = () => {
                   value={amountPaid || ''}
                   onChange={(e) => setAmountPaid(parseFloat(e.target.value) || 0)}
                   placeholder="0"
-                  className="w-full bg-surface-subtle border border-surface-border rounded-md px-3 py-2 text-xl font-mono font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full bg-white border border-surface-border rounded-md px-3.5 py-2.5 text-2xl font-mono font-bold text-ink focus:outline-none focus:ring-2 focus:ring-brand-500 min-h-[46px]"
                 />
               </div>
 
               {/* Kembalian calculation banner */}
-              <div className="p-3 bg-surface-muted rounded-lg border border-surface-border flex items-center justify-between">
-                <span className="text-xs font-medium text-ink-muted">Kembalian:</span>
+              <div className="p-3.5 bg-surface-muted rounded-lg border border-surface-border flex items-center justify-between">
+                <span className="text-xs font-bold text-ink-muted">Kembalian:</span>
                 <span
-                  className={`text-lg font-black font-mono tabular-nums ${
-                    amountPaid < totalAmount ? 'text-rose-600' : 'text-brand-600'
+                  className={`text-xl font-black font-mono tabular-nums ${
+                    amountPaid < totalAmount ? 'text-[#B64545]' : 'text-brand-500'
                   }`}
                 >
                   {amountPaid < totalAmount
@@ -1039,32 +1095,32 @@ export const PosPage: React.FC = () => {
           )}
 
           {/* Voucher / Kupon Promosi */}
-          <div className="p-3 rounded-lg border border-brand-200 bg-brand-50/50 space-y-2">
+          <div className="p-3 rounded-lg border border-surface-border bg-surface-subtle space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-brand-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-brand-600" />
+              <span className="text-[11px] font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                <Tag className="w-3.5 h-3.5 text-brand-500" />
                 Voucher / Kupon Promosi
               </span>
               {appliedCoupon && (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-bold text-brand-700 bg-brand-50 border border-brand-200 px-2 py-0.5 rounded">
                   Kupon Aktif
                 </span>
               )}
             </div>
 
             {appliedCoupon ? (
-              <div className="flex items-center justify-between p-2 rounded bg-white border border-brand-200 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded bg-white border border-surface-border text-xs">
                 <div>
-                  <span className="font-mono font-bold text-brand-700">{appliedCoupon.code}</span>
+                  <span className="font-mono font-bold text-brand-500">{appliedCoupon.code}</span>
                   <span className="text-ink-muted ml-2 text-[11px]">({appliedCoupon.name})</span>
-                  <div className="text-[11px] font-semibold text-emerald-700">
+                  <div className="text-[11px] font-bold text-brand-600">
                     Potongan: {formatRupiah(appliedCoupon.discountAmount)}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleRemoveCoupon}
-                  className="text-ink-subtle hover:text-rose-600 text-xs font-semibold px-2 py-1 rounded"
+                  className="text-ink-subtle hover:text-[#B64545] text-xs font-bold px-2 py-1 rounded cursor-pointer"
                 >
                   Hapus
                 </button>
@@ -1076,7 +1132,7 @@ export const PosPage: React.FC = () => {
                   placeholder="KODE VOUCHER (MISAL: SEMBAKOMURAH)"
                   value={couponCodeInput}
                   onChange={(e) => setCouponCodeInput(e.target.value.toUpperCase())}
-                  className="flex-1 bg-white border border-surface-border rounded px-2.5 py-1.5 text-xs font-mono uppercase font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="flex-1 bg-white border border-surface-border rounded-md px-3 py-2 text-xs font-mono uppercase font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
                 <Button
                   type="button"
@@ -1084,7 +1140,7 @@ export const PosPage: React.FC = () => {
                   size="sm"
                   onClick={() => handleApplyCoupon()}
                   disabled={isCheckingCoupon || !couponCodeInput.trim()}
-                  className="h-8 text-xs shrink-0 text-brand-700 border-brand-300 hover:bg-brand-50"
+                  className="h-9 text-xs shrink-0"
                 >
                   {isCheckingCoupon ? 'Cek...' : 'Terapkan'}
                 </Button>
@@ -1096,7 +1152,7 @@ export const PosPage: React.FC = () => {
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-surface-border">
             <div>
               <label className="block text-[11px] font-bold text-ink uppercase mb-1">
-                Potongan Diskon (Rp)
+                Potongan Manual (Rp)
               </label>
               <input
                 type="number"
@@ -1104,19 +1160,19 @@ export const PosPage: React.FC = () => {
                 value={discountAmount || ''}
                 onChange={(e) => setDiscountAmount(parseFloat(e.target.value) || 0)}
                 placeholder="0"
-                className="w-full bg-surface-subtle border border-surface-border rounded px-2.5 py-1.5 text-xs font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono tabular-nums"
+                className="w-full bg-white border border-surface-border rounded-md px-3 py-2 text-xs font-bold text-ink focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono tabular-nums min-h-[38px]"
               />
             </div>
             <div>
               <label className="block text-[11px] font-bold text-ink uppercase mb-1">
-                Catatan Transaksi
+                Catatan Kasir
               </label>
               <input
                 type="text"
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
                 placeholder="Contoh: Titip di warung"
-                className="w-full bg-surface-subtle border border-surface-border rounded px-2.5 py-1.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full bg-white border border-surface-border rounded-md px-3 py-2 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-brand-500 min-h-[38px]"
               />
             </div>
           </div>

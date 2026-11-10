@@ -245,6 +245,18 @@ export class ReportService {
     if (startDate) dateFilter.gte = new Date(`${startDate}T00:00:00.000Z`);
     if (endDate) dateFilter.lte = new Date(`${endDate}T23:59:59.999Z`);
 
+    const formatCsvRow = (row: (string | number | null | undefined)[]) =>
+      row.map((cell) => {
+        if (cell === null || cell === undefined) return '""';
+        let str = String(cell);
+        // Neutralize CSV formula injection characters (=, +, -, @, tabs, carriage returns)
+        if (/^[=+\-@\t\r]/.test(str)) {
+          str = `'${str}`;
+        }
+        // RFC 4180 compliant: escape double quotes by doubling them
+        return `"${str.replace(/"/g, '""')}"`;
+      }).join(',');
+
     if (type === 'sales') {
       const orders = await prisma.order.findMany({
         where: {
@@ -272,7 +284,7 @@ export class ReportService {
         ]),
       ];
 
-      return rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+      return rows.map(formatCsvRow).join('\n');
     }
 
     if (type === 'purchases') {
@@ -303,7 +315,7 @@ export class ReportService {
         ]),
       ];
 
-      return rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+      return rows.map(formatCsvRow).join('\n');
     }
 
     // Inventory movements
@@ -333,6 +345,6 @@ export class ReportService {
       ]),
     ];
 
-    return rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+    return rows.map(formatCsvRow).join('\n');
   }
 }

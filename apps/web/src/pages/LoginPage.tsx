@@ -3,10 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Store, Lock, Mail, AlertCircle, ShieldCheck, UserCheck } from 'lucide-react';
+import { Lock, Mail, AlertCircle, ShieldCheck, UserCheck } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
+import { Logo } from '../components/brand/Logo';
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
@@ -59,17 +60,9 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-surface-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* Brand Logo */}
-        <div className="flex justify-center">
-          <div className="w-14 h-14 rounded-xl bg-brand-500 flex items-center justify-center text-white shadow-md">
-            <Store className="w-8 h-8 text-white" />
-          </div>
+        <div className="flex justify-center mb-2">
+          <Logo variant="light" size="lg" />
         </div>
-        <h2 className="mt-4 text-center text-2xl font-black tracking-tight text-ink">
-          Grosir<span className="text-brand-500">POS</span>
-        </h2>
-        <p className="mt-1 text-center text-xs text-ink-muted">
-          Sistem Point of Sale & Operasional Toko Grosir Sembako
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">

@@ -97,7 +97,7 @@ export const ReturnsPage: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={() => setIsPurchaseReturnModalOpen(true)}
-              className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+              className="flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
               Buat Retur ke Supplier
@@ -305,7 +305,7 @@ export const ReturnsPage: React.FC = () => {
                   ) : (
                     purchaseData.returns.map((ret) => (
                       <tr key={ret.id} className="hover:bg-surface-muted/30 transition-colors">
-                        <td className="py-3 px-4 font-mono font-bold text-blue-700">
+                        <td className="py-3 px-4 font-mono font-bold text-brand-700">
                           {ret.returnNumber}
                         </td>
                         <td className="py-3 px-4 font-mono text-ink">
@@ -322,7 +322,7 @@ export const ReturnsPage: React.FC = () => {
                             {ret.refundMethod === 'DEBT_OFFSET' ? 'Potong Hutang' : 'Uang Tunai'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4 text-right font-black text-blue-700">
+                        <td className="py-3 px-4 text-right font-black text-brand-700">
                           {formatRupiah(ret.totalAmount)}
                         </td>
                         <td className="py-3 px-4 text-ink-muted whitespace-nowrap">

@@ -69,8 +69,8 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, title }) => {
 
         {/* Live Status indicator */}
         <div className="hidden md:flex items-center gap-2 pl-2 border-l border-surface-border text-xs text-ink-muted">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-medium text-emerald-700">Online</span>
+          <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
+          <span className="font-semibold text-brand-600">Online</span>
         </div>
       </div>
     </header>

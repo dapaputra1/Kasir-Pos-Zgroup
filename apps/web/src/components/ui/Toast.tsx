@@ -65,14 +65,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             key={t.id}
             className={cn(
               'pointer-events-auto flex items-start gap-3 p-4 rounded-lg shadow-lg border text-sm transition-all animate-in slide-in-from-bottom-3 duration-200 bg-white',
-              t.type === 'success' && 'border-emerald-300 text-emerald-950',
-              t.type === 'error' && 'border-rose-300 text-rose-950',
-              t.type === 'info' && 'border-blue-300 text-blue-950'
+              t.type === 'success' && 'border-brand-200 text-brand-900 bg-brand-50/95',
+              t.type === 'error' && 'border-[#F0C2C2] text-[#B64545] bg-[#FDF2F2]/95',
+              t.type === 'info' && 'border-[#C8D7E6] text-[#294E70] bg-[#EDF2F7]/95'
             )}
           >
-            {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />}
-            {t.type === 'error' && <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />}
-            {t.type === 'info' && <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />}
+            {t.type === 'success' && <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />}
+            {t.type === 'error' && <AlertCircle className="w-5 h-5 text-[#B64545] shrink-0 mt-0.5" />}
+            {t.type === 'info' && <Info className="w-5 h-5 text-[#294E70] shrink-0 mt-0.5" />}
 
             <div className="flex-1">
               <p className="font-semibold text-xs sm:text-sm">{t.message}</p>

@@ -87,7 +87,7 @@ export const StockHistoryModal: React.FC<StockHistoryModalProps> = ({
                         <Badge className={details.color}>{details.label}</Badge>
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap font-bold">
-                        <span className={isPositive ? 'text-emerald-600' : 'text-rose-600'}>
+                        <span className={isPositive ? 'text-brand-600' : 'text-[#B64545]'}>
                           {isPositive ? '+' : '-'}
                           {formatNumber(m.quantity)} {product.baseUnit}
                         </span>

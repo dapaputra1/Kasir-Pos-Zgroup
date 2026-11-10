@@ -50,8 +50,7 @@ export const DashboardPage: React.FC = () => {
       productId: number;
       data: { type: string; quantity: number; note: string };
     }) => {
-      const res = await api.post(`/inventory/adjust`, {
-        productId,
+      const res = await api.post(`/products/${productId}/adjust-stock`, {
         type: data.type,
         quantity: data.quantity,
         note: data.note,
@@ -80,11 +79,11 @@ export const DashboardPage: React.FC = () => {
       {/* Top Welcome Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-lg border border-surface-border shadow-xs">
         <div>
-          <h1 className="text-xl font-black text-ink">
-            Selamat Datang, <span className="text-brand-600">{user?.name}</span>
+          <h1 className="text-xl font-bold text-ink">
+            Selamat Datang, <span className="text-brand-500">{user?.name}</span>
           </h1>
-          <p className="text-xs text-ink-muted mt-0.5">
-            Berikut ringkasan status operasional, kas, dan inventori sembako hari ini.
+          <p className="text-xs text-ink-muted mt-1">
+            Ringkasan operasional kasir, piutang bon tempo, dan inventori sembako hari ini.
           </p>
         </div>
 
@@ -95,7 +94,7 @@ export const DashboardPage: React.FC = () => {
             onClick={() => refetch()}
             leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
           >
-            Segarkan
+            Segarkan Data
           </Button>
 
           <Button
@@ -109,7 +108,7 @@ export const DashboardPage: React.FC = () => {
 
           {canManageProducts && (
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => navigate('/products?action=add')}
               leftIcon={<Plus className="w-4 h-4" />}
@@ -120,83 +119,88 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Commercial Summary Row */}
+      {/* Commercial Summary Row: Clean, Professional Retail Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Omzet Hari Ini */}
+        {/* Penjualan Hari Ini */}
         <Card className="hover:border-brand-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                 Penjualan Hari Ini
               </span>
-              <div className="w-8 h-8 rounded-md bg-brand-50 text-brand-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded bg-[#EDF2F7] text-brand-500 flex items-center justify-center">
                 <DollarSign className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2 text-2xl font-black text-brand-700 font-mono tabular-nums">
+            <div className="mt-3 text-2xl font-extrabold text-brand-500 font-mono tabular-nums">
               {isLoading ? '...' : formatRupiah(metrics?.todaySales || 0)}
             </div>
-            <div className="mt-1 text-xs text-ink-muted">
-              {formatNumber(metrics?.todayOrdersCount || 0)} transaksi selesai hari ini
+            <div className="mt-1.5 flex items-center justify-between text-xs text-ink-muted">
+              <span>{formatNumber(metrics?.todayOrdersCount || 0)} transaksi selesai</span>
+              <Badge variant="success">Hari Ini</Badge>
             </div>
           </CardContent>
         </Card>
 
-        {/* Total Piutang Bon */}
-        <Card className="hover:border-teal-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
+        {/* Piutang Bon Tempo */}
+        <Card className="hover:border-surface-border transition-colors">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
                 Piutang Bon Tempo
               </span>
-              <div className="w-8 h-8 rounded-md bg-teal-50 text-teal-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded bg-[#FBF5EB] text-[#C6923D] flex items-center justify-center">
                 <CreditCard className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2 text-2xl font-black text-ink font-mono tabular-nums">
+            <div className="mt-3 text-2xl font-extrabold text-ink font-mono tabular-nums">
               {isLoading ? '...' : formatRupiah(metrics?.totalReceivables || 0)}
             </div>
-            <div className="mt-1 text-xs text-ink-muted">Tagihan bon pelanggan aktif</div>
+            <div className="mt-1.5 flex items-center justify-between text-xs text-ink-muted">
+              <span>Tagihan pelanggan aktif</span>
+              <Badge variant="warning">Belum Lunas</Badge>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Total Products */}
-        <Card className="hover:border-brand-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
+        {/* Total Produk */}
+        <Card className="hover:border-surface-border transition-colors">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
-                Total Produk
+                Katalog Produk
               </span>
-              <div className="w-8 h-8 rounded-md bg-brand-50 text-brand-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded bg-surface-subtle text-ink flex items-center justify-center">
                 <Package className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2 text-2xl font-black text-ink font-mono tabular-nums">
+            <div className="mt-3 text-2xl font-extrabold text-ink font-mono tabular-nums">
               {isLoading ? '...' : formatNumber(metrics?.totalProducts || 0)}
             </div>
-            <div className="mt-1 text-xs text-ink-muted flex items-center gap-1">
-              <span className="text-brand-600 font-semibold">{metrics?.activeProducts || 0}</span>{' '}
-              produk berstatus aktif
+            <div className="mt-1.5 flex items-center justify-between text-xs text-ink-muted">
+              <span>{metrics?.activeProducts || 0} berstatus aktif</span>
+              <Badge variant="outline">Katalog</Badge>
             </div>
           </CardContent>
         </Card>
 
-        {/* Out of Stock Alert */}
-        <Card className="hover:border-rose-300 transition-colors">
-          <CardContent className="p-4 sm:p-5">
+        {/* Stok Kritis & Kosong */}
+        <Card className="hover:border-status-danger/40 transition-colors">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-rose-800 uppercase tracking-wider">
-                Stok Kritis & Kosong
+              <span className="text-xs font-bold text-[#B64545] uppercase tracking-wider">
+                Stok Kritis & Habis
               </span>
-              <div className="w-8 h-8 rounded-md bg-rose-50 text-rose-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded bg-[#FDF2F2] text-[#B64545] flex items-center justify-center">
                 <Boxes className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-2 text-2xl font-black text-rose-600 font-mono tabular-nums">
+            <div className="mt-3 text-2xl font-extrabold text-[#B64545] font-mono tabular-nums">
               {isLoading ? '...' : formatNumber((metrics?.outOfStockCount || 0) + (metrics?.lowStockCount || 0))}
             </div>
-            <div className="mt-1 text-xs text-rose-800 font-medium">
-              {metrics?.outOfStockCount || 0} Habis • {metrics?.lowStockCount || 0} Menipis
+            <div className="mt-1.5 flex items-center justify-between text-xs text-ink-muted">
+              <span>{metrics?.outOfStockCount || 0} habis • {metrics?.lowStockCount || 0} tipis</span>
+              <Badge variant="danger">Perlu Kulakan</Badge>
             </div>
           </CardContent>
         </Card>
@@ -209,7 +213,7 @@ export const DashboardPage: React.FC = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
+                <AlertTriangle className="w-4 h-4 text-[#C6923D]" />
                 <span>Peringatan Stok Kritis & Perlu Kulakan</span>
               </CardTitle>
               <p className="text-xs text-ink-muted mt-0.5">
@@ -229,14 +233,14 @@ export const DashboardPage: React.FC = () => {
           <CardContent className="p-0">
             {criticalItems.length === 0 ? (
               <div className="p-8 text-center text-ink-muted text-xs">
-                <TrendingUp className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
-                <p className="font-semibold text-emerald-800">Semua stok berada dalam kondisi aman!</p>
+                <TrendingUp className="w-8 h-8 text-brand-500 mx-auto mb-2 opacity-80" />
+                <p className="font-bold text-brand-700">Semua stok berada dalam kondisi aman</p>
                 <p className="mt-0.5">Tidak ada barang yang menipis di bawah batas minimum saat ini.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-surface-muted border-b border-surface-border text-ink font-semibold uppercase tracking-wider">
+                  <thead className="bg-surface-muted border-b border-surface-border text-ink font-bold uppercase tracking-wider">
                     <tr>
                       <th className="px-4 py-3">Nama Produk</th>
                       <th className="px-4 py-3 text-right">Stok Saat Ini</th>
@@ -250,9 +254,9 @@ export const DashboardPage: React.FC = () => {
                       <tr key={item.id} className="hover:bg-surface-subtle/50 transition-colors">
                         <td className="px-4 py-3 font-semibold text-ink">
                           <div>{item.name}</div>
-                          <div className="text-[10px] text-ink-subtle font-mono">ID #{item.id}</div>
+                          <div className="text-[10px] text-ink-muted font-mono">ID #{item.id}</div>
                         </td>
-                        <td className="px-4 py-3 text-right font-bold text-rose-600 font-mono tabular-nums">
+                        <td className="px-4 py-3 text-right font-bold text-[#B64545] font-mono tabular-nums">
                           {formatNumber(item.currentStock)} {item.baseUnit}
                         </td>
                         <td className="px-4 py-3 text-right text-ink-muted font-mono tabular-nums">
@@ -293,7 +297,7 @@ export const DashboardPage: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Boxes className="w-4 h-4 text-brand-600" />
+              <Boxes className="w-4 h-4 text-brand-500" />
               <span>Log Mutasi Stok Terakhir</span>
             </CardTitle>
             <p className="text-xs text-ink-muted mt-0.5">Audit trail perubahan inventori real-time</p>
@@ -309,29 +313,31 @@ export const DashboardPage: React.FC = () => {
                 return (
                   <div
                     key={m.id}
-                    className="p-3 bg-surface-muted border border-surface-border rounded-lg space-y-1.5 text-xs hover:border-surface-subtle transition-colors"
+                    className="p-3 bg-surface-muted border border-surface-border rounded-lg space-y-1.5 text-xs hover:border-brand-200 transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-ink truncate max-w-[170px]">
                         {m.product?.name}
                       </span>
-                      <Badge className={details.color}>{details.label}</Badge>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${details.color}`}>
+                        {details.label}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between text-ink-muted">
                       <span>
                         Perubahan:{' '}
-                        <strong className={isPositive ? 'text-emerald-700' : 'text-rose-700'}>
+                        <strong className={isPositive ? 'text-brand-600' : 'text-[#B64545]'}>
                           {isPositive ? '+' : '-'}
                           {formatNumber(m.quantity)} {m.product?.baseUnit}
                         </strong>
                       </span>
-                      <span className="font-medium">
+                      <span className="font-medium font-mono tabular-nums">
                         Stok: {formatNumber(m.currentStock)} {m.product?.baseUnit}
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-[11px] text-ink-subtle pt-1 border-t border-surface-border/60">
+                    <div className="flex items-center justify-between text-[11px] text-ink-muted pt-1 border-t border-surface-border">
                       <span>Oleh: {m.user?.name || 'Sistem'}</span>
                       <span>{formatDate(m.createdAt)}</span>
                     </div>

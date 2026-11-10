@@ -302,6 +302,7 @@ export const PurchaseFormModal: React.FC<PurchaseFormModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['purchases-summary'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['products-all'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-catalog'] });
       if (onSuccess) onSuccess();
       onClose();
     },

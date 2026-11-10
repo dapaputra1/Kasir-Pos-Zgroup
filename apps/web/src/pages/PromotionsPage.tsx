@@ -364,12 +364,12 @@ export const PromotionsPage: React.FC = () => {
                           </td>
                           <td className="py-3 px-4 text-center">
                             {p.isActive ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
                                 <CheckCircle2 className="w-3 h-3" />
                                 Aktif
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted bg-surface-subtle px-2 py-0.5 rounded border border-surface-border">
                                 <XCircle className="w-3 h-3" />
                                 Nonaktif
                               </span>
@@ -379,7 +379,7 @@ export const PromotionsPage: React.FC = () => {
                             <div className="flex items-center justify-center gap-1.5">
                               <button
                                 onClick={() => handleOpenEditPromo(p)}
-                                className="p-1.5 text-ink-muted hover:text-brand-600 rounded hover:bg-surface-muted transition-colors"
+                                className="p-1.5 text-ink-muted hover:text-brand-500 rounded hover:bg-surface-subtle transition-colors cursor-pointer"
                                 title="Edit Promo"
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
@@ -390,7 +390,7 @@ export const PromotionsPage: React.FC = () => {
                                     deletePromoMutation.mutate(p.id);
                                   }
                                 }}
-                                className="p-1.5 text-ink-muted hover:text-rose-600 rounded hover:bg-surface-muted transition-colors"
+                                className="p-1.5 text-ink-muted hover:text-[#B64545] rounded hover:bg-[#FDF2F2] transition-colors cursor-pointer"
                                 title="Hapus Promo"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ export const PromotionsPage: React.FC = () => {
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Gift className="w-5 h-5 text-emerald-600" />
+                  <Gift className="w-5 h-5 text-brand-500" />
                   Daftar Paket Bundling Sembako (Combo Package)
                 </CardTitle>
                 <p className="text-xs text-ink-muted mt-0.5">
@@ -431,7 +431,7 @@ export const PromotionsPage: React.FC = () => {
                   setBundleComponents([]);
                   setIsBundleModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="flex items-center gap-1.5 shrink-0"
               >
                 <Plus className="w-4 h-4" />
                 Konfigurasi Paket Baru
@@ -454,28 +454,28 @@ export const PromotionsPage: React.FC = () => {
                         <div>
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                <Sparkles className="w-3 h-3 text-emerald-600" />
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-brand-700 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+                                <Sparkles className="w-3 h-3 text-brand-700" />
                                 Paket Sembako
                               </span>
                               <h3 className="font-bold text-sm text-ink mt-1.5">{bundle.name}</h3>
                               <p className="text-[11px] font-mono text-ink-muted">{bundle.sku}</p>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-black text-brand-700">{formatRupiah(price)}</div>
+                              <div className="text-sm font-black text-brand-500 font-mono tabular-nums">{formatRupiah(price)}</div>
                               <div className="text-[10px] text-ink-muted">Modal: {formatRupiah(bundle.totalComponentHpp)}</div>
                             </div>
                           </div>
 
-                          <div className="mt-3 pt-3 border-t border-surface-border/60">
-                            <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-2">
+                          <div className="mt-3 pt-3 border-t border-surface-border">
+                            <div className="text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2">
                               Komponen Paket Penyusun:
                             </div>
                             <div className="space-y-1.5">
                               {bundle.bundleParents.map((item) => (
                                 <div
                                   key={item.id}
-                                  className="flex items-center justify-between text-xs p-2 rounded bg-surface-muted/40"
+                                  className="flex items-center justify-between text-xs p-2 rounded bg-surface-muted"
                                 >
                                   <div>
                                     <span className="font-semibold text-ink">{item.componentProduct?.name}</span>
@@ -483,7 +483,7 @@ export const PromotionsPage: React.FC = () => {
                                       ({formatNumber(item.quantity)} {item.componentProduct?.baseUnit})
                                     </span>
                                   </div>
-                                  <span className="text-[11px] text-ink-muted">
+                                  <span className="text-[11px] text-ink-muted font-mono tabular-nums">
                                     Stok: {formatNumber(item.componentProduct?.currentStock ?? 0)}
                                   </span>
                                 </div>
@@ -495,7 +495,7 @@ export const PromotionsPage: React.FC = () => {
                         <div className="mt-4 pt-3 border-t border-surface-border flex items-center justify-between">
                           <div className="text-xs">
                             <span className="text-ink-muted">Siap dirakit:</span>{' '}
-                            <span className="font-bold text-emerald-700">
+                            <span className="font-bold text-brand-600">
                               {formatNumber(bundle.calculatedAvailableStock)} paket
                             </span>
                           </div>
@@ -593,7 +593,7 @@ export const PromotionsPage: React.FC = () => {
             <CardHeader className="p-0 mb-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <TrendingDown className="w-4 h-4 text-emerald-600" />
+                  <TrendingDown className="w-4 h-4 text-brand-500" />
                   Konfigurasi Skema Tier Harga Grosir
                 </CardTitle>
                 <p className="text-xs text-ink-muted mt-0.5">
@@ -629,9 +629,9 @@ export const PromotionsPage: React.FC = () => {
                   {tierInputs.map((tier, idx) => (
                     <div
                       key={idx}
-                      className="p-3 border border-surface-border rounded-lg bg-surface-muted/30 flex flex-col sm:flex-row sm:items-center gap-3"
+                      className="p-3 border border-surface-border rounded-lg bg-surface-muted/50 flex flex-col sm:flex-row sm:items-center gap-3"
                     >
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-[#EDF2F7] text-brand-500 font-black text-xs flex items-center justify-center shrink-0 border border-[#C8D7E6]">
                         T{idx + 1}
                       </div>
 
@@ -920,7 +920,7 @@ export const PromotionsPage: React.FC = () => {
                     onClick={() => {
                       setBundleComponents(bundleComponents.filter((_, i) => i !== idx));
                     }}
-                    className="p-1.5 text-ink-muted hover:text-rose-600 rounded"
+                    className="p-1.5 text-ink-muted hover:text-[#B64545] rounded"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -938,7 +938,6 @@ export const PromotionsPage: React.FC = () => {
               size="sm"
               onClick={() => saveBundleMutation.mutate()}
               disabled={saveBundleMutation.isPending || !selectedBundleProduct || bundleComponents.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               {saveBundleMutation.isPending ? 'Menyimpan...' : 'Simpan Komponen Paket'}
             </Button>

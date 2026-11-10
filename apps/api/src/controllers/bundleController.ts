@@ -2,13 +2,28 @@ import { Request, Response, NextFunction } from 'express';
 import { BundleService } from '../services/bundleService';
 import { PriceTierService } from '../services/priceTierService';
 import { sendSuccess } from '../utils/response';
+import { AuthenticatedRequest } from '../middlewares/authMiddleware';
 
 export class BundleController {
   // Bundle list
   static async listBundles(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await BundleService.listBundles();
-      return sendSuccess(res, data, 'Daftar paket bundling berhasil diambil.');
+      const isCashier = (req as AuthenticatedRequest).user?.role === 'CASHIER';
+      const safeData = isCashier
+        ? data.map((b: any) => ({
+            ...b,
+            purchasePrice: 0,
+            totalComponentHpp: 0,
+            bundleParents: b.bundleParents?.map((bp: any) => ({
+              ...bp,
+              componentProduct: bp.componentProduct
+                ? { ...bp.componentProduct, purchasePrice: 0 }
+                : bp.componentProduct,
+            })),
+          }))
+        : data;
+      return sendSuccess(res, safeData, 'Daftar paket bundling berhasil diambil.');
     } catch (error) {
       next(error);
     }
@@ -19,7 +34,22 @@ export class BundleController {
     try {
       const productId = parseInt(req.params.productId, 10);
       const data = await BundleService.getBundleDetail(productId);
-      return sendSuccess(res, data, 'Detail paket bundling berhasil diambil.');
+      const isCashier = (req as AuthenticatedRequest).user?.role === 'CASHIER';
+      const safeData =
+        isCashier && data
+          ? {
+              ...data,
+              purchasePrice: 0,
+              totalComponentHpp: 0,
+              bundleParents: data.bundleParents?.map((bp: any) => ({
+                ...bp,
+                componentProduct: bp.componentProduct
+                  ? { ...bp.componentProduct, purchasePrice: 0 }
+                  : bp.componentProduct,
+              })),
+            }
+          : data;
+      return sendSuccess(res, safeData, 'Detail paket bundling berhasil diambil.');
     } catch (error) {
       next(error);
     }

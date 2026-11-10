@@ -13,6 +13,12 @@ router.get(
   requireRole(['OWNER', 'ADMIN', 'CASHIER']),
   PosController.scanBarcode
 );
+router.get(
+  '/lookup/:code',
+  authenticate,
+  requireRole(['OWNER', 'ADMIN', 'CASHIER']),
+  PosController.scanBarcode
+);
 
 // 2. Search catalog for quick POS item selection
 router.get(

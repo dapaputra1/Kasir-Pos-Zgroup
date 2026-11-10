@@ -108,6 +108,7 @@ export const ProductsPage: React.FC = () => {
         editingProduct ? 'Produk berhasil diperbarui!' : 'Produk baru berhasil didaftarkan!'
       );
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-catalog'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
       setIsFormModalOpen(false);
       setEditingProduct(null);
@@ -137,6 +138,7 @@ export const ProductsPage: React.FC = () => {
     onSuccess: () => {
       success('Stok berhasil diperbarui dan mutasi audit tercatat!');
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-catalog'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] });
       setAdjustingProduct(null);
     },
@@ -250,10 +252,10 @@ export const ProductsPage: React.FC = () => {
                 setStockStatus('all');
                 setPage(1);
               }}
-              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center ${
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center cursor-pointer ${
                 stockStatus === 'all'
-                  ? 'bg-ink text-white'
-                  : 'bg-surface-subtle text-ink hover:bg-gray-200'
+                  ? 'bg-brand-500 text-white shadow-xs'
+                  : 'bg-surface-subtle text-ink hover:bg-brand-50 hover:text-brand-700'
               }`}
             >
               Semua
@@ -263,10 +265,10 @@ export const ProductsPage: React.FC = () => {
                 setStockStatus('low_stock');
                 setPage(1);
               }}
-              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center ${
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center cursor-pointer ${
                 stockStatus === 'low_stock'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200'
+                  ? 'bg-[#C6923D] text-white shadow-xs'
+                  : 'bg-[#FBF5EB] text-[#C6923D] hover:bg-[#F3E7D3] border border-[#EEDBB8]'
               }`}
             >
               Menipis
@@ -276,10 +278,10 @@ export const ProductsPage: React.FC = () => {
                 setStockStatus('out_of_stock');
                 setPage(1);
               }}
-              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center ${
+              className={`px-3 py-2 text-xs font-bold rounded-md transition-colors whitespace-nowrap min-h-[40px] flex-1 text-center cursor-pointer ${
                 stockStatus === 'out_of_stock'
-                  ? 'bg-rose-600 text-white'
-                  : 'bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200'
+                  ? 'bg-[#B64545] text-white shadow-xs'
+                  : 'bg-[#FDF2F2] text-[#B64545] hover:bg-[#F9DDDD] border border-[#F0C2C2]'
               }`}
             >
               Habis
@@ -380,7 +382,7 @@ export const ProductsPage: React.FC = () => {
                               key={u.id || u.unitName}
                               className={`px-2 py-1 rounded text-[11px] border flex flex-col ${
                                 u.isBaseUnit
-                                  ? 'bg-brand-50/70 border-brand-200 text-brand-900'
+                                  ? 'bg-[#EDF2F7] border-[#C8D7E6] text-ink'
                                   : 'bg-surface-subtle border-surface-border text-ink'
                               }`}
                             >
@@ -392,11 +394,11 @@ export const ProductsPage: React.FC = () => {
                                   </span>
                                 )}
                               </div>
-                              <div className="font-semibold text-brand-700">
+                              <div className="font-extrabold text-brand-500 font-mono tabular-nums">
                                 {formatRupiah(u.price)}
                               </div>
                               {u.wholesalePrice && Number(u.wholesalePrice) > 0 && (
-                                <div className="text-[10px] text-ink-muted">
+                                <div className="text-[10px] text-ink-muted font-mono tabular-nums">
                                   Grosir: {formatRupiah(u.wholesalePrice)}
                                 </div>
                               )}
@@ -408,11 +410,11 @@ export const ProductsPage: React.FC = () => {
                       {/* Current Stock Level */}
                       <td className="px-4 py-3.5 text-right align-top whitespace-nowrap">
                         <div
-                          className={`font-black text-sm ${
+                          className={`font-black text-sm font-mono tabular-nums ${
                             isOutOfStock
-                              ? 'text-rose-600'
+                              ? 'text-[#B64545]'
                               : isLowStock
-                              ? 'text-amber-600'
+                              ? 'text-[#C6923D]'
                               : 'text-ink'
                           }`}
                         >
@@ -455,7 +457,7 @@ export const ProductsPage: React.FC = () => {
                             type="button"
                             onClick={() => handleOpenHistory(prod)}
                             title="Riwayat Mutasi Stok (Audit Trail)"
-                            className="p-1.5 text-ink-muted hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+                            className="p-1.5 text-ink-muted hover:text-brand-600 hover:bg-brand-50 rounded-md transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
                           >
                             <History className="w-4 h-4" />
                           </button>

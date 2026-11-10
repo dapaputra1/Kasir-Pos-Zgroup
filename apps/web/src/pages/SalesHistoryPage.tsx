@@ -110,7 +110,7 @@ export const SalesHistoryPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-blue-200 bg-white">
+        <Card className="border-brand-200 bg-white">
           <CardContent className="p-4 flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
@@ -120,7 +120,7 @@ export const SalesHistoryPage: React.FC = () => {
                 {formatNumber(summary.totalOrders)} Transaksi
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-700 flex items-center justify-center">
               <Receipt className="w-5 h-5" />
             </div>
           </CardContent>

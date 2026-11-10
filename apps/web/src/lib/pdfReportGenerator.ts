@@ -24,14 +24,14 @@ export class PdfReportGenerator {
     const storeName = options.storeName || 'GROSIR SEMBAKO ZGROUP';
     const storeAddress = options.storeAddress || 'Sistem Kasir & Operasional Toko Grosir Sembako';
 
-    // Top primary emerald band
-    doc.setFillColor(23, 107, 88); // #176B58
+    // Top primary brand blue band
+    doc.setFillColor(41, 78, 112); // #294E70
     doc.rect(0, 0, pageWidth, 8, 'F');
 
     // Store Name
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(16);
-    doc.setTextColor(23, 107, 88);
+    doc.setTextColor(41, 78, 112);
     doc.text(storeName, 14, 20);
 
     // Tagline / Address
@@ -132,7 +132,7 @@ export class PdfReportGenerator {
       ],
       theme: 'grid',
       headStyles: {
-        fillColor: [23, 107, 88],
+        fillColor: [41, 78, 112], // #294E70 Brand Blue
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 8.5,
@@ -194,7 +194,7 @@ export class PdfReportGenerator {
         ]),
         theme: 'striped',
         headStyles: {
-          fillColor: [78, 116, 105],
+          fillColor: [32, 62, 90], // #203E5A Brand 600
           textColor: [255, 255, 255],
           fontStyle: 'bold',
           fontSize: 8,
@@ -265,7 +265,7 @@ export class PdfReportGenerator {
       ]],
       theme: 'grid',
       headStyles: {
-        fillColor: [23, 107, 88],
+        fillColor: [41, 78, 112], // #294E70 Brand Blue
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 8,
@@ -413,7 +413,7 @@ export class PdfReportGenerator {
       ]],
       theme: 'grid',
       headStyles: {
-        fillColor: [16, 149, 114], // Teal Emerald
+        fillColor: [41, 78, 112], // #294E70 Brand Blue
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 8,

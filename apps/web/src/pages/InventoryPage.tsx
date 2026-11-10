@@ -117,6 +117,7 @@ export const InventoryPage: React.FC = () => {
       setOpnameInputs({});
       queryClient.invalidateQueries({ queryKey: ['products-opname'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['pos-catalog'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-movements'] });
     },
     onError: (err: any) => {
@@ -345,7 +346,7 @@ export const InventoryPage: React.FC = () => {
                           <td className="py-3 px-4 text-center font-bold">
                             <span
                               className={`inline-flex items-center gap-1 ${
-                                isPositive ? 'text-emerald-700' : 'text-rose-700'
+                                isPositive ? 'text-brand-600' : 'text-[#B64545]'
                               }`}
                             >
                               {isPositive ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
@@ -409,8 +410,8 @@ export const InventoryPage: React.FC = () => {
       {activeTab === 'opname' && (
         <div className="space-y-4">
           {opnameSuccessMsg && (
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-brand-50 border border-brand-200 text-brand-900 text-sm flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-brand-600 shrink-0" />
               <span>{opnameSuccessMsg}</span>
             </div>
           )}
@@ -494,11 +495,11 @@ export const InventoryPage: React.FC = () => {
                             {diff === 0 ? (
                               <span className="text-gray-400">Sesuai (0)</span>
                             ) : diff > 0 ? (
-                              <span className="text-emerald-600 font-extrabold">
+                              <span className="text-brand-600 font-extrabold">
                                 +{formatNumber(diff)} {p.baseUnit}
                               </span>
                             ) : (
-                              <span className="text-rose-600 font-extrabold">
+                              <span className="text-[#B64545] font-extrabold">
                                 {formatNumber(diff)} {p.baseUnit}
                               </span>
                             )}

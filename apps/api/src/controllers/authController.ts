@@ -46,6 +46,12 @@ export class AuthController {
 
   static async createUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      if (req.user?.role !== 'OWNER' && req.body.role === 'OWNER') {
+        const error: any = new Error('Hanya Owner yang berhak mendaftarkan akun dengan role Owner.');
+        error.statusCode = 403;
+        error.code = 'FORBIDDEN_ROLE_ESCALATION';
+        throw error;
+      }
       const user = await AuthService.createUser(req.body);
       return sendSuccess(res, user, 'Pengguna baru berhasil didaftarkan.', 201);
     } catch (error) {

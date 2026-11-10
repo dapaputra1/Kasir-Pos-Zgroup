@@ -61,15 +61,15 @@ export function formatDate(dateString: string | undefined | null): string {
 export function getRoleDetails(role: string) {
   switch (role) {
     case 'OWNER':
-      return { label: 'Owner / Pemilik', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+      return { label: 'Owner / Pemilik', color: 'bg-[#EDF2F7] text-[#294E70] border-[#C8D7E6]' };
     case 'ADMIN':
-      return { label: 'Admin Operasional', color: 'bg-blue-100 text-blue-800 border-blue-200' };
+      return { label: 'Admin Operasional', color: 'bg-brand-50 text-brand-700 border-brand-200' };
     case 'CASHIER':
-      return { label: 'Kasir', color: 'bg-amber-100 text-amber-800 border-amber-200' };
+      return { label: 'Kasir', color: 'bg-[#FBF5EB] text-[#C6923D] border-[#EEDBB8]' };
     case 'WAREHOUSE':
-      return { label: 'Petugas Gudang', color: 'bg-purple-100 text-purple-800 border-purple-200' };
+      return { label: 'Petugas Gudang', color: 'bg-surface-subtle text-ink border-surface-border' };
     default:
-      return { label: role, color: 'bg-gray-100 text-gray-800 border-gray-200' };
+      return { label: role, color: 'bg-surface-subtle text-ink border-surface-border' };
   }
 }
 
@@ -79,14 +79,14 @@ export function getRoleDetails(role: string) {
 export function getMovementDetails(type: string) {
   switch (type) {
     case 'IN':
-      return { label: 'Masuk / Beli', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      return { label: 'Masuk / Beli', color: 'bg-brand-50 text-brand-700 border-brand-200' };
     case 'OUT':
-      return { label: 'Keluar / Jual', color: 'bg-rose-50 text-rose-700 border-rose-200' };
+      return { label: 'Keluar / Jual', color: 'bg-[#FDF2F2] text-[#B64545] border-[#F0C2C2]' };
     case 'ADJUSTMENT':
-      return { label: 'Koreksi Opname', color: 'bg-blue-50 text-blue-700 border-blue-200' };
+      return { label: 'Koreksi Opname', color: 'bg-[#EDF2F7] text-[#294E70] border-[#C8D7E6]' };
     case 'RETURN':
-      return { label: 'Retur Barang', color: 'bg-amber-50 text-amber-700 border-amber-200' };
+      return { label: 'Retur Barang', color: 'bg-[#FBF5EB] text-[#C6923D] border-[#EEDBB8]' };
     default:
-      return { label: type, color: 'bg-gray-50 text-gray-700 border-gray-200' };
+      return { label: type, color: 'bg-surface-subtle text-ink border-surface-border' };
   }
 }

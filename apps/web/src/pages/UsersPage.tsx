@@ -223,8 +223,8 @@ export const UsersPage: React.FC = () => {
                           onClick={() => handleToggleActive(u)}
                           className={`p-1.5 rounded-md transition ${
                             u.isActive
-                              ? 'text-gray-400 hover:text-rose-600 hover:bg-rose-50'
-                              : 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50'
+                              ? 'text-gray-400 hover:text-[#B64545] hover:bg-[#FDF2F2]'
+                              : 'text-brand-700 hover:text-brand-800 hover:bg-brand-50'
                           }`}
                           title={u.isActive ? 'Nonaktifkan akun' : 'Aktifkan akun'}
                         >

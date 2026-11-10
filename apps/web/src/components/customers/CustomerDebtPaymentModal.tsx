@@ -88,38 +88,38 @@ export const CustomerDebtPaymentModal: React.FC<CustomerDebtPaymentModalProps> =
         className="space-y-4"
       >
         {errorMsg && (
-          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+          <div className="p-3 rounded-lg bg-[#FDF2F2] border border-[#F0C2C2] text-[#B64545] text-sm flex items-start gap-2">
+            <AlertCircle className="w-5 h-5 shrink-0 text-[#B64545] mt-0.5" />
             <div className="flex-1">{errorMsg}</div>
           </div>
         )}
 
-        <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs space-y-1.5">
+        <div className="p-3.5 bg-[#FBF5EB] rounded-xl border border-[#EEDBB8] text-xs space-y-1.5">
           <div className="flex justify-between">
-            <span className="text-amber-800">No. Faktur Bon:</span>
-            <span className="font-bold text-amber-950">{order.invoiceNumber}</span>
+            <span className="text-[#825E22]">No. Faktur Bon:</span>
+            <span className="font-bold text-ink">{order.invoiceNumber}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-amber-800">Pelanggan:</span>
-            <span className="font-semibold text-amber-950">{order.customer?.name || 'Pelanggan Umum'}</span>
+            <span className="text-[#825E22]">Pelanggan:</span>
+            <span className="font-semibold text-ink">{order.customer?.name || 'Pelanggan Umum'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-amber-800">Total Nilai Belanja:</span>
-            <span className="font-semibold text-amber-950">{formatRupiah(total)}</span>
+            <span className="text-[#825E22]">Total Nilai Belanja:</span>
+            <span className="font-semibold text-ink">{formatRupiah(total)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-amber-800">Sudah Dibayar:</span>
-            <span className="font-semibold text-emerald-700">{formatRupiah(paid)}</span>
+            <span className="text-[#825E22]">Sudah Dibayar:</span>
+            <span className="font-semibold text-brand-600">{formatRupiah(paid)}</span>
           </div>
-          <div className="pt-1.5 border-t border-amber-200/80 flex justify-between font-bold text-sm">
-            <span className="text-amber-900">Sisa Piutang Bon:</span>
-            <span className="text-rose-700">{formatRupiah(remainingDebt)}</span>
+          <div className="pt-1.5 border-t border-[#EEDBB8] flex justify-between font-bold text-sm">
+            <span className="text-[#825E22]">Sisa Piutang Bon:</span>
+            <span className="text-[#B64545]">{formatRupiah(remainingDebt)}</span>
           </div>
         </div>
 
         <div>
           <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
-            Uang Diterima dari Pelanggan (Rp) <span className="text-rose-500">*</span>
+            Uang Diterima dari Pelanggan (Rp) <span className="text-[#B64545]">*</span>
           </label>
           <Input
             type="number"

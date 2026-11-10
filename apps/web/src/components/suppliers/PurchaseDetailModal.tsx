@@ -89,11 +89,11 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
                 </p>
               )}
               {remaining > 0 ? (
-                <p className="text-rose-600 font-bold">
+                <p className="text-[#B64545] font-bold">
                   Sisa Hutang: {formatRupiah(remaining)}
                 </p>
               ) : (
-                <p className="text-emerald-600 font-bold flex items-center gap-1">
+                <p className="text-brand-600 font-bold flex items-center gap-1">
                   <CheckCircle className="w-3.5 h-3.5" /> Lunas Sepenuhnya
                 </p>
               )}
@@ -162,7 +162,7 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
                 <span className="font-semibold text-gray-900">{formatRupiah(purchase.subtotal)}</span>
               </div>
               {Number(purchase.discountAmount) > 0 && (
-                <div className="flex justify-between text-emerald-600">
+                <div className="flex justify-between text-brand-600">
                   <span>Diskon / Potongan:</span>
                   <span className="font-semibold">-{formatRupiah(purchase.discountAmount)}</span>
                 </div>
@@ -179,10 +179,10 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
               </div>
               <div className="flex justify-between text-gray-700 font-medium">
                 <span>Sudah Dibayar:</span>
-                <span className="text-emerald-700">{formatRupiah(paid)}</span>
+                <span className="text-brand-600 font-bold">{formatRupiah(paid)}</span>
               </div>
               {remaining > 0 && (
-                <div className="p-2.5 rounded-lg bg-rose-50 border border-rose-200 flex justify-between items-center font-bold text-rose-800">
+                <div className="p-2.5 rounded-lg bg-[#FDF2F2] border border-[#F0C2C2] flex justify-between items-center font-bold text-[#B64545]">
                   <span>Sisa Hutang Tempo:</span>
                   <span>{formatRupiah(remaining)}</span>
                 </div>
@@ -194,7 +194,7 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
           {purchase.payments && purchase.payments.length > 0 && (
             <div>
               <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
+                <CreditCard className="w-4 h-4 text-brand-600" />
                 <span>Riwayat Pelunasan Hutang</span>
               </h4>
               <div className="border border-gray-200 rounded-lg overflow-hidden text-xs">
@@ -218,7 +218,7 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
                         </td>
                         <td className="py-2 px-3 font-medium text-gray-700">{p.paymentMethod}</td>
                         <td className="py-2 px-3 text-gray-600 italic">{p.note || '-'}</td>
-                        <td className="py-2 px-3 text-right font-bold text-emerald-700">
+                        <td className="py-2 px-3 text-right font-bold text-brand-600">
                           {formatRupiah(p.amount)}
                         </td>
                       </tr>
@@ -235,11 +235,12 @@ export const PurchaseDetailModal: React.FC<PurchaseDetailModalProps> = ({
               {remaining > 0 && onOpenPayment && (
                 <Button
                   type="button"
+                  variant="primary"
                   onClick={() => {
                     onClose();
                     onOpenPayment(purchase);
                   }}
-                  className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5"
+                  className="flex items-center gap-1.5"
                 >
                   <DollarSign className="w-4 h-4" />
                   <span>Bayar Hutang ({formatRupiah(remaining)})</span>

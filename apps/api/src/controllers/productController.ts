@@ -7,7 +7,11 @@ export class ProductController {
   static async list(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await ProductService.listProducts(req.query as any);
-      return sendSuccess(res, result.items, 'Daftar produk berhasil diambil.', 200, result.pagination);
+      const isCashier = (req as AuthenticatedRequest).user?.role === 'CASHIER';
+      const items = isCashier
+        ? result.items.map((p: any) => ({ ...p, purchasePrice: 0 }))
+        : result.items;
+      return sendSuccess(res, items, 'Daftar produk berhasil diambil.', 200, result.pagination);
     } catch (error) {
       next(error);
     }
@@ -17,7 +21,9 @@ export class ProductController {
     try {
       const id = parseInt(req.params.id, 10);
       const product = await ProductService.getProductById(id);
-      return sendSuccess(res, product, 'Detail produk berhasil diambil.');
+      const isCashier = (req as AuthenticatedRequest).user?.role === 'CASHIER';
+      const safeProduct = isCashier && product ? { ...product, purchasePrice: 0 } : product;
+      return sendSuccess(res, safeProduct, 'Detail produk berhasil diambil.');
     } catch (error) {
       next(error);
     }
@@ -27,7 +33,9 @@ export class ProductController {
     try {
       const code = req.params.code;
       const product = await ProductService.getProductByBarcodeOrSku(code);
-      return sendSuccess(res, product, 'Produk ditemukan.');
+      const isCashier = (req as AuthenticatedRequest).user?.role === 'CASHIER';
+      const safeProduct = isCashier && product ? { ...product, purchasePrice: 0 } : product;
+      return sendSuccess(res, safeProduct, 'Produk ditemukan.');
     } catch (error) {
       next(error);
     }

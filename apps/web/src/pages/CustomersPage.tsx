@@ -149,50 +149,50 @@ export const CustomersPage: React.FC = () => {
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500">Total Piutang Berjalan</p>
-            <p className="text-lg font-black text-amber-900">
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Total Piutang Berjalan</p>
+            <p className="text-lg font-black text-[#C6923D] font-mono tabular-nums">
               {formatRupiah(summary?.totalReceivables || 0)}
             </p>
-            <p className="text-[11px] text-amber-700 font-medium">Uang toko di pelanggan</p>
+            <p className="text-[11px] text-[#C6923D] font-medium">Uang toko di pelanggan</p>
           </div>
         </Card>
 
-        <Card className="p-4 border-l-4 border-l-rose-500 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-[#B64545] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#FDF2F2] flex items-center justify-center text-[#B64545] shrink-0">
             <Receipt className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500">Faktur Bon Belum Lunas</p>
-            <p className="text-lg font-black text-rose-700">
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Faktur Bon Belum Lunas</p>
+            <p className="text-lg font-black text-[#B64545] font-mono tabular-nums">
               {formatNumber(summary?.unpaidOrdersCount || 0)} Transaksi
             </p>
-            <p className="text-[11px] text-rose-600 font-medium">Perlu penagihan</p>
+            <p className="text-[11px] text-[#B64545] font-medium">Perlu penagihan</p>
           </div>
         </Card>
 
-        <Card className="p-4 border-l-4 border-l-purple-500 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-[#C6923D] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#FBF5EB] flex items-center justify-center text-[#C6923D] shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500">Jatuh Tempo (≤ 7 Hari)</p>
-            <p className="text-lg font-black text-purple-900">
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Jatuh Tempo (≤ 7 Hari)</p>
+            <p className="text-lg font-black text-[#C6923D] font-mono tabular-nums">
               {formatNumber(summary?.dueSoonCount || 0)} Faktur
             </p>
-            <p className="text-[11px] text-purple-600 font-medium">Batas waktu segera habis</p>
+            <p className="text-[11px] text-[#C6923D] font-medium">Batas waktu segera habis</p>
           </div>
         </Card>
 
-        <Card className="p-4 border-l-4 border-l-brand-600 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-brand-500 flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#EDF2F7] flex items-center justify-center text-brand-500 shrink-0">
             <Store className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500">Pelanggan Aktif</p>
-            <p className="text-lg font-black text-gray-900">
+            <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">Pelanggan Aktif</p>
+            <p className="text-lg font-black text-ink font-mono tabular-nums">
               {formatNumber(summary?.activeCustomersCount || 0)} Toko/Warung
             </p>
-            <p className="text-[11px] text-brand-600 font-medium">Terdaftar di sistem</p>
+            <p className="text-[11px] text-brand-500 font-medium">Terdaftar di sistem</p>
           </div>
         </Card>
       </div>
@@ -288,7 +288,7 @@ export const CustomersPage: React.FC = () => {
                   ) : !receivablesResponse?.data || receivablesResponse.data.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-12 text-center text-gray-400">
-                        <CheckCircle2 className="w-10 h-10 mx-auto text-emerald-400 mb-2" />
+                        <CheckCircle2 className="w-10 h-10 mx-auto text-brand-500 mb-2" />
                         <p className="font-semibold text-gray-600">Tidak ada piutang yang belum lunas!</p>
                         <p className="text-xs text-gray-400 mt-1">Semua transaksi bon pelanggan sudah lunas.</p>
                       </td>
@@ -318,10 +318,10 @@ export const CustomersPage: React.FC = () => {
                           <td className="py-3 px-4 text-right font-bold text-gray-900">
                             {formatRupiah(total)}
                           </td>
-                          <td className="py-3 px-4 text-right font-semibold text-emerald-700">
+                          <td className="py-3 px-4 text-right font-semibold text-brand-600">
                             {formatRupiah(paid)}
                           </td>
-                          <td className="py-3 px-4 text-right font-bold text-rose-600">
+                          <td className="py-3 px-4 text-right font-bold text-[#B64545]">
                             {formatRupiah(remaining)}
                           </td>
                           <td className="py-3 px-4 text-center">
@@ -345,16 +345,17 @@ export const CustomersPage: React.FC = () => {
                             {remaining > 0 ? (
                               <Button
                                 size="sm"
+                                variant="primary"
                                 onClick={() => {
                                   setPaymentTargetOrder(order);
                                   setIsPaymentModalOpen(true);
                                 }}
-                                className="text-xs py-1 px-3 bg-amber-600 hover:bg-amber-700 text-white"
+                                className="text-xs py-1 px-3"
                               >
                                 Terima Bayar
                               </Button>
                             ) : (
-                              <span className="text-[11px] text-emerald-600 font-semibold">Lunas</span>
+                              <span className="text-[11px] text-brand-600 font-semibold">Lunas</span>
                             )}
                           </td>
                         </tr>
@@ -466,12 +467,12 @@ export const CustomersPage: React.FC = () => {
                         <td className="py-3 px-4 font-semibold text-gray-900">{c.name}</td>
                         <td className="py-3 px-4 text-center">
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                            className={`text-[10px] px-2 py-0.5 rounded font-bold border ${
                               c.tier === 'VIP'
-                                ? 'bg-purple-100 text-purple-800'
+                                ? 'bg-[#FBF5EB] text-[#C6923D] border-[#EEDBB8]'
                                 : c.tier === 'GROSIR'
-                                ? 'bg-brand-100 text-brand-800'
-                                : 'bg-gray-100 text-gray-700'
+                                ? 'bg-brand-50 text-brand-700 border-brand-200'
+                                : 'bg-surface-subtle text-ink border-surface-border'
                             }`}
                           >
                             {c.tier}
@@ -482,7 +483,7 @@ export const CustomersPage: React.FC = () => {
                         <td className="py-3 px-4 text-right font-medium text-gray-700">
                           {Number(c.creditLimit) > 0 ? formatRupiah(c.creditLimit) : 'Tanpa Limit'}
                         </td>
-                        <td className="py-3 px-4 text-right font-bold text-rose-600">
+                        <td className="py-3 px-4 text-right font-bold text-[#B64545]">
                           {formatRupiah(c.totalDebt || 0)}
                         </td>
                         <td className="py-3 px-4 text-center">
@@ -506,7 +507,7 @@ export const CustomersPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleDeleteCustomer(c)}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                              className="p-1.5 rounded-md text-gray-400 hover:text-[#B64545] hover:bg-[#FDF2F2] transition"
                               title="Hapus / Nonaktifkan"
                             >
                               <Trash2 className="w-4 h-4" />

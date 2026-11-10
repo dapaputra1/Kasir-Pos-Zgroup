@@ -50,7 +50,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         {/* Header Bar */}
         <div className="px-4 py-3 bg-brand-500 text-white flex items-center justify-between shrink-0 print:hidden">
           <div className="flex items-center gap-1.5 font-bold text-sm">
-            <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <CheckCircle2 className="w-4 h-4 text-brand-200" />
             <span>Pembayaran Berhasil! ({setting?.paperSize || '58mm'})</span>
           </div>
           <button
@@ -68,6 +68,11 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         >
           {/* Receipt Store Header */}
           <div className="text-center space-y-1 pb-2 border-b border-dashed border-gray-400">
+            <img
+              src="/logo-grosirpos.png"
+              alt="GrosirPOS"
+              className="h-7 mx-auto mb-1.5 object-contain"
+            />
             <h2 className="font-black text-base tracking-tight uppercase">
               {setting?.storeName || 'GrosirPOS Sembako'}
             </h2>
@@ -124,7 +129,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
               <span>{formatRupiah(order.subtotal)}</span>
             </div>
             {Number(order.discountAmount) > 0 && (
-              <div className="flex justify-between text-rose-600">
+              <div className="flex justify-between text-[#B64545]">
                 <span>Diskon:</span>
                 <span>-{formatRupiah(order.discountAmount)}</span>
               </div>

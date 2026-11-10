@@ -28,15 +28,15 @@ export const PlaceholderPage: React.FC<PlaceholderProps> = ({ title, stage, desc
       <div className="bg-surface-muted border border-surface-border rounded-lg p-4 text-left text-xs space-y-2 mb-6">
         <div className="font-bold text-ink">Fondasi yang sudah siap untuk modul ini:</div>
         <div className="flex items-center gap-2 text-ink-muted">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
           <span>Skema database multi-satuan & konversi barang grosir aktif</span>
         </div>
         <div className="flex items-center gap-2 text-ink-muted">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
           <span>Sistem audit trail mutasi stok (Stock Movements) siap pakai</span>
         </div>
         <div className="flex items-center gap-2 text-ink-muted">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-brand-600 shrink-0" />
           <span>Autentikasi aman dan RBAC backend siap tervalidasi</span>
         </div>
       </div>

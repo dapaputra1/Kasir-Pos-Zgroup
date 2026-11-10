@@ -204,38 +204,38 @@ export const SuppliersPage: React.FC = () => {
         </Card>
 
         {/* Card 2: Total Hutang Tempo */}
-        <Card className="p-4 border-l-4 border-l-amber-500 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-[#C6923D] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#FBF5EB] flex items-center justify-center text-[#C6923D] shrink-0">
             <CreditCard className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-gray-500">Total Hutang Dagang</p>
-            <p className="text-lg font-black text-amber-900">
+            <p className="text-lg font-black text-[#C6923D]">
               {formatRupiah(summary?.totalUnpaidDebt || 0)}
             </p>
-            <p className="text-[11px] text-amber-700 font-medium">
+            <p className="text-[11px] text-[#C6923D] font-medium">
               {formatNumber(summary?.tempoPurchasesCount || 0)} faktur tempo belum lunas
             </p>
           </div>
         </Card>
 
         {/* Card 3: Jatuh Tempo Dekat */}
-        <Card className="p-4 border-l-4 border-l-rose-500 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-[#B64545] flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#FDF2F2] flex items-center justify-center text-[#B64545] shrink-0">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <p className="text-xs font-medium text-gray-500">Jatuh Tempo (≤ 7 Hari)</p>
-            <p className="text-lg font-black text-rose-700">
+            <p className="text-lg font-black text-[#B64545]">
               {formatNumber(summary?.dueSoonCount || 0)} Faktur
             </p>
-            <p className="text-[11px] text-rose-600 font-medium">Prioritas pembayaran</p>
+            <p className="text-[11px] text-[#B64545] font-medium">Prioritas pembayaran</p>
           </div>
         </Card>
 
         {/* Card 4: Supplier Aktif */}
-        <Card className="p-4 border-l-4 border-l-blue-500 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+        <Card className="p-4 border-l-4 border-l-brand-500 flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-brand-50 flex items-center justify-center text-brand-700 shrink-0">
             <Warehouse className="w-5 h-5" />
           </div>
           <div>
@@ -243,7 +243,7 @@ export const SuppliersPage: React.FC = () => {
             <p className="text-lg font-black text-gray-900">
               {formatNumber(summary?.activeSuppliersCount || 0)} Rekanan
             </p>
-            <p className="text-[11px] text-blue-600 font-medium">Distributor grosir sembako</p>
+            <p className="text-[11px] text-brand-700 font-medium">Distributor grosir sembako</p>
           </div>
         </Card>
       </div>
@@ -474,8 +474,8 @@ export const SuppliersPage: React.FC = () => {
                             <span
                               className={`text-[11px] px-2 py-0.5 rounded font-bold ${
                                 p.paymentType === 'CASH'
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-amber-50 text-amber-700'
+                                  ? 'bg-brand-50 text-brand-700'
+                                  : 'bg-[#FBF5EB] text-[#C6923D]'
                               }`}
                             >
                               {p.paymentType === 'CASH' ? 'TUNAI' : 'TEMPO'}
@@ -489,7 +489,7 @@ export const SuppliersPage: React.FC = () => {
                           <td className="py-3 px-4 text-right font-bold">
                             {remaining > 0 ? (
                               <div>
-                                <span className="text-rose-600">{formatRupiah(remaining)}</span>
+                                <span className="text-[#B64545]">{formatRupiah(remaining)}</span>
                                 {p.dueDate && (
                                   <span className="text-[10px] text-gray-400 block font-normal">
                                     Tempo: {new Date(p.dueDate).toLocaleDateString('id-ID')}
@@ -497,7 +497,7 @@ export const SuppliersPage: React.FC = () => {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-emerald-600 font-normal text-[11px] flex items-center justify-end gap-1">
+                              <span className="text-brand-600 font-normal text-[11px] flex items-center justify-end gap-1">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Lunas
                               </span>
                             )}
@@ -542,7 +542,7 @@ export const SuppliersPage: React.FC = () => {
                                     setPaymentTargetPurchase(p);
                                     setIsPaymentModalOpen(true);
                                   }}
-                                  className="px-2 py-1 rounded-md text-[11px] font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition"
+                                  className="px-2.5 py-1 rounded-md text-[11px] font-semibold text-white bg-brand-500 hover:bg-brand-600 shadow-xs transition"
                                   title="Bayar cicilan / lunas tempo"
                                 >
                                   Bayar

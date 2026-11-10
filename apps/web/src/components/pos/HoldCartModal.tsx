@@ -122,9 +122,9 @@ export const HoldCartModal: React.FC<HoldCartModalProps> = ({
     >
       {mode === 'save' ? (
         <form onSubmit={handleSaveHold} className="space-y-4">
-          <div className="p-3 bg-amber-50 border border-amber-200/60 rounded-lg flex items-start gap-2.5">
-            <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-xs text-amber-800 leading-relaxed">
+          <div className="p-3 bg-brand-50 border border-brand-200 rounded-lg flex items-start gap-2.5">
+            <Clock className="w-5 h-5 text-brand-600 shrink-0 mt-0.5" />
+            <p className="text-xs text-brand-800 leading-relaxed">
               Tahan sementara keranjang belanja pembeli ini agar kasir dapat melayani antrean pembeli lainnya. Anda dapat memanggil kembali (recall) keranjang ini kapan saja.
             </p>
           </div>
@@ -157,7 +157,7 @@ export const HoldCartModal: React.FC<HoldCartModalProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Batal
             </Button>
-            <Button type="submit" className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white">
+            <Button type="submit" variant="primary" className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               Simpan & Tahan Keranjang
             </Button>

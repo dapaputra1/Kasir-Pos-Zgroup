@@ -221,7 +221,7 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
             {/* Total Return Amount Preview */}
             <div className="flex items-center justify-between pt-2 border-t border-surface-border text-xs">
               <span className="font-semibold text-ink">Total Nilai Klaim Retur:</span>
-              <span className="text-base font-black text-blue-700">
+              <span className="text-base font-black text-brand-700">
                 {formatRupiah(calculateTotalReturn())}
               </span>
             </div>
@@ -244,7 +244,7 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
 
         <div>
           <label className="block text-xs font-semibold text-ink uppercase tracking-wider mb-1.5">
-            Alasan Retur ke Distributor <span className="text-rose-500">*</span>
+            Alasan Retur ke Distributor <span className="text-[#B64545]">*</span>
           </label>
           <Input
             type="text"
@@ -261,8 +261,9 @@ export const CreatePurchaseReturnModal: React.FC<CreatePurchaseReturnModalProps>
           </Button>
           <Button
             type="submit"
+            variant="primary"
             disabled={returnMutation.isPending || !selectedPurchaseId || calculateTotalReturn() <= 0}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex items-center gap-2"
           >
             <RotateCcw className="w-4 h-4" />
             {returnMutation.isPending ? 'Memproses...' : 'Konfirmasi Retur ke Supplier'}

@@ -309,17 +309,17 @@ export const ReportsPage: React.FC = () => {
         </Card>
 
         {/* Laba Kotor / Gross Profit */}
-        <Card className="p-5 border-l-4 border-l-emerald-600 bg-white shadow-xs">
+        <Card className="p-5 border-l-4 border-l-brand-500 bg-white shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-muted uppercase tracking-wider">
+            <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
               Laba Kotor (Gross Profit)
             </span>
-            <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div className="w-9 h-9 rounded-lg bg-brand-50 flex items-center justify-center text-brand-600">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-emerald-700">
+            <div className="text-2xl font-black text-brand-600 font-mono tabular-nums">
               {formatRupiah(plData?.grossProfit ?? 0)}
             </div>
             <div className="flex items-center gap-2 mt-1.5">
@@ -332,17 +332,17 @@ export const ReportsPage: React.FC = () => {
         </Card>
 
         {/* Belanja Stok Supplier */}
-        <Card className="p-5 border-l-4 border-l-blue-600 bg-white shadow-xs">
+        <Card className="p-5 border-l-4 border-l-brand-500 bg-white shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-ink-muted uppercase tracking-wider">
+            <span className="text-xs font-bold text-ink-muted uppercase tracking-wider">
               Belanja Stok (Supplier)
             </span>
-            <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+            <div className="w-9 h-9 rounded-lg bg-[#EDF2F7] flex items-center justify-center text-brand-500">
               <Package className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <div className="text-2xl font-black text-ink">
+            <div className="text-2xl font-black text-ink font-mono tabular-nums">
               {formatRupiah(plData?.totalPurchases ?? 0)}
             </div>
             <p className="text-xs text-ink-muted mt-1.5">
@@ -371,18 +371,18 @@ export const ReportsPage: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Kas Masuk */}
-                <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-100">
-                  <div className="flex items-center gap-2 text-emerald-800 font-semibold text-xs uppercase tracking-wider">
-                    <ArrowDownRight className="w-4 h-4 text-emerald-600" />
+                <div className="p-4 rounded-xl bg-brand-50 border border-brand-200">
+                  <div className="flex items-center gap-2 text-brand-700 font-bold text-xs uppercase tracking-wider">
+                    <ArrowDownRight className="w-4 h-4 text-brand-600" />
                     Total Kas Masuk
                   </div>
-                  <div className="text-xl font-black text-emerald-900 mt-2">
+                  <div className="text-xl font-black text-brand-700 mt-2 font-mono tabular-nums">
                     {formatRupiah(cashflowData?.cashIn.total ?? 0)}
                   </div>
-                  <div className="mt-3 space-y-1.5 text-xs text-emerald-700">
+                  <div className="mt-3 space-y-1.5 text-xs text-brand-700">
                     <div className="flex justify-between">
                       <span>Penjualan Lunas:</span>
-                      <span className="font-semibold">{formatRupiah(cashflowData?.cashIn.salesPaid ?? 0)}</span>
+                      <span className="font-semibold font-mono tabular-nums">{formatRupiah(cashflowData?.cashIn.salesPaid ?? 0)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Pelunasan Bon:</span>
@@ -421,7 +421,7 @@ export const ReportsPage: React.FC = () => {
                     </div>
                     <div
                       className={`text-2xl font-black mt-2 ${
-                        (cashflowData?.netCashflow ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-700'
+                        (cashflowData?.netCashflow ?? 0) >= 0 ? 'text-brand-700' : 'text-[#B64545]'
                       }`}
                     >
                       {formatRupiah(cashflowData?.netCashflow ?? 0)}
@@ -484,7 +484,7 @@ export const ReportsPage: React.FC = () => {
                       size="sm"
                       onClick={() => handleExportPdf('sales')}
                       disabled={downloadingExport === 'pdf-sales'}
-                      className="flex items-center gap-1.5 text-xs text-brand-600 border-brand-200 hover:bg-brand-50"
+                      className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       PDF
@@ -516,7 +516,7 @@ export const ReportsPage: React.FC = () => {
                       size="sm"
                       onClick={() => handleExportPdf('purchases')}
                       disabled={downloadingExport === 'pdf-purchases'}
-                      className="flex items-center gap-1.5 text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
+                      className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       PDF
@@ -548,7 +548,7 @@ export const ReportsPage: React.FC = () => {
                       size="sm"
                       onClick={() => handleExportPdf('inventory')}
                       disabled={downloadingExport === 'pdf-inventory'}
-                      className="flex items-center gap-1.5 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50"
+                      className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       PDF
@@ -567,9 +567,9 @@ export const ReportsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200/60 flex items-start gap-2.5">
-                <AlertCircle className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
-                <p className="text-[11px] text-emerald-900 leading-relaxed">
+              <div className="mt-4 p-3 rounded-lg bg-brand-50 border border-brand-200 flex items-start gap-2.5">
+                <AlertCircle className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-brand-900 leading-relaxed">
                   Laporan format PDF dilengkapi kop toko, ringkasan per baris, dan blok tanda tangan validasi kasir & pemilik toko.
                 </p>
               </div>
@@ -651,7 +651,7 @@ export const ReportsPage: React.FC = () => {
                       <td className="py-3 px-4 text-right text-ink-muted">
                         {formatRupiah(p.totalCogs)}
                       </td>
-                      <td className="py-3 px-4 text-right font-bold text-emerald-700">
+                      <td className="py-3 px-4 text-right font-bold text-brand-600">
                         {formatRupiah(p.profit)}
                       </td>
                       <td className="py-3 px-4 text-center">
